@@ -3,7 +3,7 @@ from torch.optim import Adam, AdamW
 from SubFormer.modules.model import SubFormer
 from tqdm import tqdm
 from torch_geometric.data import DataLoader
-from SubFormer.data.transforms import JunctionTree
+from SubFormer.data.transforms import get_transform_opda
 from SubFormer.utils.seed import set_seed
 from SubFormer.datasets.opda import OPDADataset
 import torch.nn.functional as F
@@ -21,7 +21,7 @@ class MyTransform:
         return data
 
 
-pre_transform = JunctionTree()
+pre_transform = get_transform_opda(add_virtual_node=False, pedim=16)
 dataset = OPDADataset(root, pre_transform=pre_transform, transform=MyTransform()).shuffle()
 
 # Normalize targets to mean = 0 and std = 1.
@@ -76,7 +76,7 @@ def train():
     model.train()
     total_loss = 0
 
-    for iter, data in tqdm(enumerate(train_loader)):
+    for iter, data in enumerate(train_loader):
         data = data.to(device)
         optimizer.zero_grad()
         out = model(data)

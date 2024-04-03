@@ -125,6 +125,7 @@ class LocalMP(torch.nn.Module):
 
         elif local_mp == 'agat':
             if pe_fea:
+                self.align = torch.nn.Linear(hidden_channels + pe_dim, hidden_channels)
                 for i in range(num_layers):
                     if i == 0:
                         self.bond_encoders.append(BondEncoder(hidden_channels))
@@ -149,6 +150,7 @@ class LocalMP(torch.nn.Module):
 
         elif local_mp == 'ggcn':
             if pe_fea:
+                self.align = torch.nn.Linear(hidden_channels + pe_dim, hidden_channels)
                 for i in range(num_layers):
                     if i == 0:
                         self.bond_encoders.append(BondEncoder(hidden_channels))
@@ -209,15 +211,22 @@ class LocalMP(torch.nn.Module):
                     x_negative = torch.cat([x, -graph_pe], dim=-1)
                     x = self.graph_convs[i](x_positive, edge_index, edge_attr) + self.graph_convs[i](x_negative,
                                                                                                      edge_index,
-                                                                                                     edge_attr)
+                                                                                                        edge_attr)
+                    if self.local_mp != 'gine':
+                        x = self.align(x)
+                    x = self.graph_norms[i](x).relu()
+                    x = F.dropout(x, p=self.dropout)
+
                 else:
                     x = self.graph_convs[i](x, edge_index, edge_attr)
+                    x = self.graph_norms[i](x).relu()
+                    x = F.dropout(x, p=self.dropout)
 
             else:
                 x = self.graph_convs[i](x, edge_index, edge_attr)
+                x = self.graph_norms[i](x).relu()
+                x = F.dropout(x, p=self.dropout)
 
-            x = self.graph_norms[i](x).relu()
-            x = F.dropout(x, p=self.dropout)
 
             row, col = data.atom2clique_index
             x_clique = x_clique + F.relu(self.atom2clique_lins[i](scatter(

@@ -1,0 +1,99 @@
+SubFormer(
+  (local_mp): LocalMP(
+    (atom_encoder): AtomEncoder(
+      (embeddings): ModuleList(
+        (0-8): 9 x Embedding(100, 128)
+      )
+    )
+    (clique_encoder): Embedding(4, 128)
+    (activation): ReLU()
+    (back_activation): LeakyReLU(negative_slope=0.01)
+    (bond_encoders): ModuleList(
+      (0-3): 4 x BondEncoder(
+        (embeddings): ModuleList(
+          (0-2): 3 x Embedding(6, 128)
+        )
+      )
+    )
+    (graph_convs): ModuleList(
+      (0-3): 4 x AGATConv(128, phi=GATv2Conv(128, 128, heads=4), num_iters=1, epsilon=0.1, gamma=0.1)
+    )
+    (graph_norms): ModuleList(
+      (0-3): 4 x BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (sub_norms): ModuleList(
+      (0-3): 4 x BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (atom2clique_lins): ModuleList(
+      (0-3): 4 x Linear(in_features=128, out_features=128, bias=True)
+    )
+    (clique2atom_lins): ModuleList(
+      (0-3): 4 x Linear(in_features=128, out_features=128, bias=True)
+    )
+    (clique): Linear(in_features=128, out_features=128, bias=True)
+  )
+  (pe): PositionalEncoding(
+    (activation): ReLU()
+    (deg_emb): Embedding(100, 128)
+    (deg_lin): Linear(in_features=128, out_features=128, bias=True)
+    (deg_merge): Linear(in_features=128, out_features=128, bias=True)
+    (tree_lpe_lin): Linear(in_features=16, out_features=64, bias=True)
+    (lpe_lin): Linear(in_features=16, out_features=64, bias=True)
+  )
+  (encoder): Encoder(
+    (activation): ReLU()
+    (encoder_layer): TransformerEncoderLayer(
+      (self_attn): MultiheadAttention(
+        (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+      )
+      (linear1): Linear(in_features=256, out_features=512, bias=True)
+      (dropout): Dropout(p=0.3, inplace=False)
+      (linear2): Linear(in_features=512, out_features=256, bias=True)
+      (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (dropout1): Dropout(p=0.3, inplace=False)
+      (dropout2): Dropout(p=0.3, inplace=False)
+    )
+    (encoder): TransformerEncoder(
+      (layers): ModuleList(
+        (0-3): 4 x TransformerEncoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=256, out_features=256, bias=True)
+          )
+          (linear1): Linear(in_features=256, out_features=512, bias=True)
+          (dropout): Dropout(p=0.3, inplace=False)
+          (linear2): Linear(in_features=512, out_features=256, bias=True)
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.3, inplace=False)
+          (dropout2): Dropout(p=0.3, inplace=False)
+        )
+      )
+    )
+  )
+  (readout): Sequential(
+    (0): Linear(in_features=256, out_features=256, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=256, out_features=256, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=256, out_features=1, bias=True)
+  )
+)
+
+Run 1:
+
+Epoch: 001, Loss: 0.1509, Train: 0.7547, Val: 0.7318, Test: 0.7426
+Epoch: 002, Loss: 0.1333, Train: 0.7843, Val: 0.7728, Test: 0.7239
+Epoch: 003, Loss: 0.1282, Train: 0.8011, Val: 0.7723, Test: 0.7468
+Epoch: 004, Loss: 0.1229, Train: 0.8169, Val: 0.7883, Test: 0.7513
+Epoch: 005, Loss: 0.1197, Train: 0.8140, Val: 0.7969, Test: 0.7579
+Epoch: 006, Loss: 0.1161, Train: 0.8354, Val: 0.7956, Test: 0.7585
+Epoch: 007, Loss: 0.1143, Train: 0.8447, Val: 0.7904, Test: 0.7910
+Epoch: 008, Loss: 0.1081, Train: 0.8520, Val: 0.7971, Test: 0.7932
+Epoch: 009, Loss: 0.1056, Train: 0.8602, Val: 0.8208, Test: 0.8026
+Epoch: 010, Loss: 0.1029, Train: 0.8596, Val: 0.7827, Test: 0.7908
+Epoch: 011, Loss: 0.1018, Train: 0.8672, Val: 0.8112, Test: 0.8076
+Epoch: 012, Loss: 0.1003, Train: 0.8720, Val: 0.8255, Test: 0.8130
+Epoch: 013, Loss: 0.0996, Train: 0.8800, Val: 0.8215, Test: 0.7992
+Epoch: 014, Loss: 0.0954, Train: 0.8824, Val: 0.8149, Test: 0.7999
+Epoch: 015, Loss: 0.0929, Train: 0.8919, Val: 0.8221, Test: 0.7919

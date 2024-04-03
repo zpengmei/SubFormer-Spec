@@ -3,8 +3,8 @@ from torch.optim import Adam, AdamW
 from SubFormer.modules.model import SubFormer
 from torch_geometric.datasets import LRGBDataset
 from torch_geometric.data import DataLoader
-from subformer.utils.transform import get_transform
-from subformer.utils.utils import set_seed
+from SubFormer.data.transforms import get_transform
+from SubFormer.utils.seed import set_seed
 from torch.cuda.amp import GradScaler, autocast
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -38,6 +38,7 @@ model = SubFormer(
     d_model=128,
     dim_feedforward=128,
     dual_readout=False,
+    readout_act='relu',
     expand_spec=False,
     num_eig_trees=32,
     num_eig_graphs=32,

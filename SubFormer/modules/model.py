@@ -76,7 +76,7 @@ class SubFormer(torch.nn.Module):
                                )
 
         if readout_act is None:
-            self.activation = None
+            raise ValueError('Please provide a readout activation function.')
         elif readout_act == 'relu':
             self.activation = torch.nn.ReLU()
         elif readout_act == 'leaky_relu':

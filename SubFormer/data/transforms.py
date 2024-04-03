@@ -28,6 +28,14 @@ def get_transform_zinc(add_virtual_node=False, pedim=10):
     else:
         return Compose([JunctionTree()])
 
+def get_transform_opda(add_virtual_node=False, pedim=10):
+    global pe_dim
+    pe_dim = pedim
+    if add_virtual_node:
+        return Compose([OPDATransform(), JunctionTree(), VirtualNode()])
+    else:
+        return Compose([OPDATransform(), JunctionTree()])
+
 
 def mol_from_data(data):
     mol = Chem.RWMol()
@@ -68,6 +76,11 @@ class OGBTransform(object):
         data.edge_attr[:, 0] += 1
         return data
 
+class OPDATransform(object):
+    def __call__(self, data: Data) -> Data:
+        # print(data.edge_attr.shape)
+        data.edge_attr[:] += 1
+        return data
 
 class JunctionTree(object):
     def __call__(self, data: Data):

@@ -1,0 +1,189 @@
+Random seed set as 4321
+/home/zpengmei/miniforge3/envs/pytorch/lib/python3.11/site-packages/torch_geometric/deprecation.py:22: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  warnings.warn(out)
+SubFormer(
+  (local_mp): LocalMP(
+    (atom_encoder): AtomEncoder(
+      (embeddings): ModuleList(
+        (0-8): 9 x Embedding(100, 64)
+      )
+    )
+    (clique_encoder): Embedding(4, 64)
+    (bond_encoders): ModuleList(
+      (0-1): 2 x BondEncoder(
+        (embeddings): ModuleList(
+          (0-2): 3 x Embedding(6, 64)
+        )
+      )
+    )
+    (graph_convs): ModuleList(
+      (0-1): 2 x GINEConv(nn=Sequential(
+        (0): Linear(in_features=64, out_features=128, bias=True)
+        (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU()
+        (3): Linear(in_features=128, out_features=64, bias=True)
+      ))
+    )
+    (graph_norms): ModuleList(
+      (0-1): 2 x BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (sub_norms): ModuleList(
+      (0-1): 2 x BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (atom2clique_lins): ModuleList(
+      (0-1): 2 x Linear(in_features=64, out_features=64, bias=True)
+    )
+    (clique2atom_lins): ModuleList(
+      (0-1): 2 x Linear(in_features=64, out_features=64, bias=True)
+    )
+    (clique): Linear(in_features=64, out_features=64, bias=True)
+  )
+  (pe): PositionalEncoding(
+    (activation): GELU(approximate='none')
+    (deg_emb): Embedding(100, 64)
+    (deg_lin): Linear(in_features=64, out_features=64, bias=True)
+    (deg_merge): Linear(in_features=64, out_features=64, bias=True)
+    (tree_lpe_lin): Linear(in_features=16, out_features=32, bias=True)
+    (lpe_lin): Linear(in_features=16, out_features=32, bias=True)
+  )
+  (encoder): Encoder(
+    (activation): ReLU()
+    (encoder_layer): TransformerEncoderLayer(
+      (self_attn): MultiheadAttention(
+        (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True)
+      )
+      (linear1): Linear(in_features=128, out_features=128, bias=True)
+      (dropout): Dropout(p=0.05, inplace=False)
+      (linear2): Linear(in_features=128, out_features=128, bias=True)
+      (norm1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (norm2): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (dropout1): Dropout(p=0.05, inplace=False)
+      (dropout2): Dropout(p=0.05, inplace=False)
+    )
+    (encoder): TransformerEncoder(
+      (layers): ModuleList(
+        (0-2): 3 x TransformerEncoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True)
+          )
+          (linear1): Linear(in_features=128, out_features=128, bias=True)
+          (dropout): Dropout(p=0.05, inplace=False)
+          (linear2): Linear(in_features=128, out_features=128, bias=True)
+          (norm1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.05, inplace=False)
+          (dropout2): Dropout(p=0.05, inplace=False)
+        )
+      )
+    )
+  )
+  (activation): ReLU()
+  (readout): Sequential(
+    (0): Linear(in_features=128, out_features=128, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=128, out_features=11, bias=True)
+  )
+)
+Number of parameters:  580173
+Epoch: 001, LR: 0.00050, Loss: 0.3738, Val: 0.2957, Test: 0.3024
+Epoch: 002, LR: 0.00050, Loss: 0.3100, Val: 0.2846, Test: 0.2885
+Epoch: 003, LR: 0.00050, Loss: 0.2970, Val: 0.2797, Test: 0.2882
+Epoch: 004, LR: 0.00050, Loss: 0.2870, Val: 0.2958, Test: 0.2882
+Epoch: 005, LR: 0.00050, Loss: 0.2856, Val: 0.2791, Test: 0.2827
+Epoch: 006, LR: 0.00050, Loss: 0.2794, Val: 0.2687, Test: 0.2717
+Epoch: 007, LR: 0.00050, Loss: 0.2827, Val: 0.2674, Test: 0.2709
+Epoch: 008, LR: 0.00050, Loss: 0.2782, Val: 0.2716, Test: 0.2709
+Epoch: 009, LR: 0.00050, Loss: 0.2753, Val: 0.2729, Test: 0.2709
+Epoch: 010, LR: 0.00050, Loss: 0.2744, Val: 0.2698, Test: 0.2709
+Epoch: 011, LR: 0.00050, Loss: 0.2723, Val: 0.2701, Test: 0.2709
+Epoch: 012, LR: 0.00050, Loss: 0.2714, Val: 0.2641, Test: 0.2650
+Epoch: 013, LR: 0.00050, Loss: 0.2686, Val: 0.2663, Test: 0.2650
+Epoch: 014, LR: 0.00050, Loss: 0.2679, Val: 0.2631, Test: 0.2659
+Epoch: 015, LR: 0.00050, Loss: 0.2693, Val: 0.2720, Test: 0.2659
+Epoch: 016, LR: 0.00050, Loss: 0.2673, Val: 0.2609, Test: 0.2672
+Epoch: 017, LR: 0.00050, Loss: 0.2656, Val: 0.2596, Test: 0.2634
+Epoch: 018, LR: 0.00050, Loss: 0.2691, Val: 0.2638, Test: 0.2634
+Epoch: 019, LR: 0.00050, Loss: 0.2618, Val: 0.2620, Test: 0.2634
+Epoch: 020, LR: 0.00050, Loss: 0.2642, Val: 0.2627, Test: 0.2634
+Epoch: 021, LR: 0.00050, Loss: 0.2657, Val: 0.2605, Test: 0.2634
+Epoch: 022, LR: 0.00050, Loss: 0.2601, Val: 0.2551, Test: 0.2603
+Epoch: 023, LR: 0.00050, Loss: 0.2616, Val: 0.2593, Test: 0.2603
+Epoch: 024, LR: 0.00050, Loss: 0.2628, Val: 0.2517, Test: 0.2582
+Epoch: 025, LR: 0.00050, Loss: 0.2593, Val: 0.2536, Test: 0.2582
+Epoch: 026, LR: 0.00050, Loss: 0.2606, Val: 0.2586, Test: 0.2582
+Epoch: 027, LR: 0.00050, Loss: 0.2575, Val: 0.2583, Test: 0.2582
+Epoch: 028, LR: 0.00050, Loss: 0.2561, Val: 0.2599, Test: 0.2582
+Epoch: 029, LR: 0.00050, Loss: 0.2569, Val: 0.2516, Test: 0.2560
+Epoch: 030, LR: 0.00050, Loss: 0.2574, Val: 0.2522, Test: 0.2560
+Epoch: 031, LR: 0.00050, Loss: 0.2554, Val: 0.2507, Test: 0.2519
+Epoch: 032, LR: 0.00050, Loss: 0.2528, Val: 0.2536, Test: 0.2519
+Epoch: 033, LR: 0.00050, Loss: 0.2536, Val: 0.2605, Test: 0.2519
+Epoch: 034, LR: 0.00050, Loss: 0.2553, Val: 0.2544, Test: 0.2519
+Epoch: 035, LR: 0.00050, Loss: 0.2551, Val: 0.2510, Test: 0.2519
+Epoch: 036, LR: 0.00050, Loss: 0.2532, Val: 0.2498, Test: 0.2545
+Epoch: 037, LR: 0.00050, Loss: 0.2519, Val: 0.2492, Test: 0.2519
+Epoch: 038, LR: 0.00050, Loss: 0.2520, Val: 0.2558, Test: 0.2519
+Epoch: 039, LR: 0.00050, Loss: 0.2498, Val: 0.2475, Test: 0.2514
+Epoch: 040, LR: 0.00050, Loss: 0.2487, Val: 0.2550, Test: 0.2514
+Epoch: 041, LR: 0.00050, Loss: 0.2458, Val: 0.2463, Test: 0.2528
+Epoch: 042, LR: 0.00050, Loss: 0.2478, Val: 0.2499, Test: 0.2528
+Epoch: 043, LR: 0.00050, Loss: 0.2496, Val: 0.2496, Test: 0.2528
+Epoch: 044, LR: 0.00050, Loss: 0.2457, Val: 0.2491, Test: 0.2528
+Epoch: 045, LR: 0.00050, Loss: 0.2441, Val: 0.2561, Test: 0.2528
+Epoch: 046, LR: 0.00050, Loss: 0.2445, Val: 0.2448, Test: 0.2495
+Epoch: 047, LR: 0.00050, Loss: 0.2432, Val: 0.2474, Test: 0.2495
+Epoch: 048, LR: 0.00050, Loss: 0.2445, Val: 0.2489, Test: 0.2495
+Epoch: 049, LR: 0.00050, Loss: 0.2448, Val: 0.2462, Test: 0.2495
+Epoch: 050, LR: 0.00050, Loss: 0.2427, Val: 0.2472, Test: 0.2495
+Epoch: 051, LR: 0.00050, Loss: 0.2389, Val: 0.2452, Test: 0.2495
+Epoch: 052, LR: 0.00050, Loss: 0.2412, Val: 0.2545, Test: 0.2495
+Epoch: 053, LR: 0.00050, Loss: 0.2411, Val: 0.2464, Test: 0.2495
+Epoch: 054, LR: 0.00050, Loss: 0.2391, Val: 0.2482, Test: 0.2495
+Epoch: 055, LR: 0.00050, Loss: 0.2366, Val: 0.2539, Test: 0.2495
+Epoch: 056, LR: 0.00050, Loss: 0.2361, Val: 0.2493, Test: 0.2495
+Epoch: 057, LR: 0.00050, Loss: 0.2377, Val: 0.2465, Test: 0.2495
+Epoch: 058, LR: 0.00025, Loss: 0.2289, Val: 0.2411, Test: 0.2461
+Epoch: 059, LR: 0.00025, Loss: 0.2254, Val: 0.2441, Test: 0.2461
+Epoch: 060, LR: 0.00025, Loss: 0.2251, Val: 0.2431, Test: 0.2461
+Epoch: 061, LR: 0.00025, Loss: 0.2239, Val: 0.2437, Test: 0.2461
+Epoch: 062, LR: 0.00025, Loss: 0.2229, Val: 0.2426, Test: 0.2461
+Epoch: 063, LR: 0.00025, Loss: 0.2229, Val: 0.2410, Test: 0.2454
+Epoch: 064, LR: 0.00025, Loss: 0.2216, Val: 0.2411, Test: 0.2454
+Epoch: 065, LR: 0.00025, Loss: 0.2216, Val: 0.2418, Test: 0.2454
+Epoch: 066, LR: 0.00025, Loss: 0.2214, Val: 0.2421, Test: 0.2454
+Epoch: 067, LR: 0.00025, Loss: 0.2220, Val: 0.2475, Test: 0.2454
+Epoch: 068, LR: 0.00025, Loss: 0.2212, Val: 0.2413, Test: 0.2454
+Epoch: 069, LR: 0.00025, Loss: 0.2197, Val: 0.2452, Test: 0.2454
+Epoch: 070, LR: 0.00025, Loss: 0.2188, Val: 0.2424, Test: 0.2454
+Epoch: 071, LR: 0.00025, Loss: 0.2172, Val: 0.2442, Test: 0.2454
+Epoch: 072, LR: 0.00025, Loss: 0.2180, Val: 0.2440, Test: 0.2454
+Epoch: 073, LR: 0.00025, Loss: 0.2164, Val: 0.2455, Test: 0.2454
+Epoch: 074, LR: 0.00025, Loss: 0.2170, Val: 0.2476, Test: 0.2454
+Epoch: 075, LR: 0.00013, Loss: 0.2109, Val: 0.2431, Test: 0.2454
+Epoch: 076, LR: 0.00013, Loss: 0.2094, Val: 0.2417, Test: 0.2454
+Epoch: 077, LR: 0.00013, Loss: 0.2091, Val: 0.2405, Test: 0.2443
+Epoch: 078, LR: 0.00013, Loss: 0.2082, Val: 0.2401, Test: 0.2438
+Epoch: 079, LR: 0.00013, Loss: 0.2076, Val: 0.2436, Test: 0.2438
+Epoch: 080, LR: 0.00013, Loss: 0.2074, Val: 0.2433, Test: 0.2438
+Epoch: 081, LR: 0.00013, Loss: 0.2069, Val: 0.2429, Test: 0.2438
+Epoch: 082, LR: 0.00013, Loss: 0.2069, Val: 0.2429, Test: 0.2438
+Epoch: 083, LR: 0.00013, Loss: 0.2056, Val: 0.2415, Test: 0.2438
+Epoch: 084, LR: 0.00013, Loss: 0.2051, Val: 0.2424, Test: 0.2438
+Epoch: 085, LR: 0.00013, Loss: 0.2047, Val: 0.2412, Test: 0.2438
+Epoch: 086, LR: 0.00013, Loss: 0.2040, Val: 0.2412, Test: 0.2438
+Epoch: 087, LR: 0.00013, Loss: 0.2041, Val: 0.2448, Test: 0.2438
+Epoch: 088, LR: 0.00013, Loss: 0.2037, Val: 0.2434, Test: 0.2438
+Epoch: 089, LR: 0.00013, Loss: 0.2034, Val: 0.2427, Test: 0.2438
+Epoch: 090, LR: 0.00006, Loss: 0.2013, Val: 0.2418, Test: 0.2438
+Epoch: 091, LR: 0.00006, Loss: 0.1996, Val: 0.2442, Test: 0.2438
+Epoch: 092, LR: 0.00006, Loss: 0.1989, Val: 0.2419, Test: 0.2438
+Epoch: 093, LR: 0.00006, Loss: 0.1992, Val: 0.2414, Test: 0.2438
+Epoch: 094, LR: 0.00006, Loss: 0.1984, Val: 0.2421, Test: 0.2438
+Epoch: 095, LR: 0.00006, Loss: 0.1982, Val: 0.2428, Test: 0.2438
+Epoch: 096, LR: 0.00006, Loss: 0.1971, Val: 0.2414, Test: 0.2438
+Epoch: 097, LR: 0.00006, Loss: 0.1983, Val: 0.2417, Test: 0.2438
+Epoch: 098, LR: 0.00006, Loss: 0.1984, Val: 0.2429, Test: 0.2438
+Epoch: 099, LR: 0.00006, Loss: 0.1974, Val: 0.2434, Test: 0.2438
+Epoch: 100, LR: 0.00006, Loss: 0.1971, Val: 0.2433, Test: 0.2438

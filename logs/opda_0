@@ -1,0 +1,288 @@
+SubFormer(
+  (local_mp): LocalMP(
+    (atom_encoder): AtomEncoder(
+      (embeddings): ModuleList(
+        (0-8): 9 x Embedding(100, 128)
+      )
+    )
+    (clique_encoder): Embedding(4, 128)
+    (bond_encoders): ModuleList(
+      (0-2): 3 x BondEncoder(
+        (embeddings): ModuleList(
+          (0-2): 3 x Embedding(6, 128)
+        )
+      )
+    )
+    (graph_convs): ModuleList(
+      (0-2): 3 x GINEConv(nn=Sequential(
+        (0): Linear(in_features=128, out_features=256, bias=True)
+        (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU()
+        (3): Linear(in_features=256, out_features=128, bias=True)
+      ))
+    )
+    (graph_norms): ModuleList(
+      (0-2): 3 x BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (sub_norms): ModuleList(
+      (0-2): 3 x BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (atom2clique_lins): ModuleList(
+      (0-2): 3 x Linear(in_features=128, out_features=128, bias=True)
+    )
+    (clique2atom_lins): ModuleList(
+      (0-2): 3 x Linear(in_features=128, out_features=128, bias=True)
+    )
+    (clique): Linear(in_features=128, out_features=128, bias=True)
+  )
+  (pe): PositionalEncoding(
+    (activation): GELU(approximate='none')
+    (deg_emb): Embedding(100, 128)
+    (deg_lin): Linear(in_features=128, out_features=128, bias=True)
+    (deg_merge): Linear(in_features=128, out_features=128, bias=True)
+    (tree_lpe_lin): Linear(in_features=16, out_features=64, bias=True)
+    (lpe_lin): Linear(in_features=16, out_features=64, bias=True)
+  )
+  (encoder): Encoder(
+    (activation): ReLU()
+    (encoder_layer): TransformerEncoderLayer(
+      (self_attn): MultiheadAttention(
+        (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True)
+      )
+      (linear1): Linear(in_features=128, out_features=256, bias=True)
+      (dropout): Dropout(p=0.05, inplace=False)
+      (linear2): Linear(in_features=256, out_features=128, bias=True)
+      (norm1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (norm2): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (dropout1): Dropout(p=0.05, inplace=False)
+      (dropout2): Dropout(p=0.05, inplace=False)
+    )
+    (encoder): TransformerEncoder(
+      (layers): ModuleList(
+        (0-3): 4 x TransformerEncoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True)
+          )
+          (linear1): Linear(in_features=128, out_features=256, bias=True)
+          (dropout): Dropout(p=0.05, inplace=False)
+          (linear2): Linear(in_features=256, out_features=128, bias=True)
+          (norm1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.05, inplace=False)
+          (dropout2): Dropout(p=0.05, inplace=False)
+        )
+      )
+    )
+  )
+  (activation): ReLU()
+  (readout): Sequential(
+    (0): Linear(in_features=128, out_features=128, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+Number of parameters:  1190820
+/home/zpengmei/miniforge3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/transformer.py:380: UserWarning: The PyTorch API of nested tensors is in prototype stage and will change in the near future. (Triggered internally at /opt/conda/conda-bld/pytorch_1702400430266/work/aten/src/ATen/NestedTensorImpl.cpp:178.)
+  output = torch._nested_tensor_from_mask(output, src_key_padding_mask.logical_not(), mask_check=False)
+Epoch: 001, LR: 0.00100, Loss: 0.0236, Val: 0.2144, Test: 0.2032
+Epoch: 002, LR: 0.00100, Loss: 0.0030, Val: 0.1376, Test: 0.1369
+Epoch: 003, LR: 0.00100, Loss: 0.0025, Val: 0.1040, Test: 0.1114
+Epoch: 004, LR: 0.00100, Loss: 0.0023, Val: 0.1445, Test: 0.1114
+Epoch: 005, LR: 0.00100, Loss: 0.0018, Val: 0.2238, Test: 0.1114
+Epoch: 006, LR: 0.00100, Loss: 0.0016, Val: 0.1260, Test: 0.1114
+Epoch: 007, LR: 0.00100, Loss: 0.0013, Val: 0.0892, Test: 0.0937
+Epoch: 008, LR: 0.00100, Loss: 0.0016, Val: 0.0997, Test: 0.0937
+Epoch: 009, LR: 0.00100, Loss: 0.0012, Val: 0.0993, Test: 0.0937
+Epoch: 010, LR: 0.00100, Loss: 0.0012, Val: 0.0867, Test: 0.0928
+Epoch: 011, LR: 0.00100, Loss: 0.0011, Val: 0.0804, Test: 0.0848
+Epoch: 012, LR: 0.00100, Loss: 0.0011, Val: 0.0924, Test: 0.0848
+Epoch: 013, LR: 0.00100, Loss: 0.0011, Val: 0.0745, Test: 0.0825
+Epoch: 014, LR: 0.00100, Loss: 0.0009, Val: 0.0827, Test: 0.0825
+Epoch: 015, LR: 0.00100, Loss: 0.0010, Val: 0.0736, Test: 0.0752
+Epoch: 016, LR: 0.00100, Loss: 0.0009, Val: 0.0694, Test: 0.0754
+Epoch: 017, LR: 0.00100, Loss: 0.0007, Val: 0.0933, Test: 0.0754
+Epoch: 018, LR: 0.00100, Loss: 0.0007, Val: 0.0755, Test: 0.0754
+Epoch: 019, LR: 0.00100, Loss: 0.0008, Val: 0.0713, Test: 0.0754
+Epoch: 020, LR: 0.00100, Loss: 0.0008, Val: 0.0740, Test: 0.0754
+Epoch: 021, LR: 0.00100, Loss: 0.0007, Val: 0.0703, Test: 0.0754
+Epoch: 022, LR: 0.00100, Loss: 0.0007, Val: 0.0952, Test: 0.0754
+Epoch: 023, LR: 0.00100, Loss: 0.0006, Val: 0.0673, Test: 0.0713
+Epoch: 024, LR: 0.00100, Loss: 0.0006, Val: 0.0734, Test: 0.0713
+Epoch: 025, LR: 0.00100, Loss: 0.0006, Val: 0.0752, Test: 0.0713
+Epoch: 026, LR: 0.00100, Loss: 0.0005, Val: 0.0679, Test: 0.0713
+Epoch: 027, LR: 0.00100, Loss: 0.0006, Val: 0.0715, Test: 0.0713
+Epoch: 028, LR: 0.00100, Loss: 0.0006, Val: 0.0653, Test: 0.0666
+Epoch: 029, LR: 0.00100, Loss: 0.0005, Val: 0.0645, Test: 0.0704
+Epoch: 030, LR: 0.00100, Loss: 0.0005, Val: 0.0699, Test: 0.0704
+Epoch: 031, LR: 0.00100, Loss: 0.0006, Val: 0.0627, Test: 0.0651
+Epoch: 032, LR: 0.00100, Loss: 0.0005, Val: 0.0749, Test: 0.0651
+Epoch: 033, LR: 0.00100, Loss: 0.0004, Val: 0.0629, Test: 0.0651
+Epoch: 034, LR: 0.00100, Loss: 0.0005, Val: 0.0757, Test: 0.0651
+Epoch: 035, LR: 0.00100, Loss: 0.0005, Val: 0.0580, Test: 0.0658
+Epoch: 036, LR: 0.00100, Loss: 0.0005, Val: 0.0696, Test: 0.0658
+Epoch: 037, LR: 0.00100, Loss: 0.0004, Val: 0.0621, Test: 0.0658
+Epoch: 038, LR: 0.00100, Loss: 0.0004, Val: 0.0589, Test: 0.0658
+Epoch: 039, LR: 0.00100, Loss: 0.0004, Val: 0.0631, Test: 0.0658
+Epoch: 040, LR: 0.00100, Loss: 0.0004, Val: 0.0623, Test: 0.0658
+Epoch: 041, LR: 0.00100, Loss: 0.0004, Val: 0.0607, Test: 0.0658
+Epoch: 042, LR: 0.00100, Loss: 0.0004, Val: 0.0565, Test: 0.0610
+Epoch: 043, LR: 0.00100, Loss: 0.0004, Val: 0.0690, Test: 0.0610
+Epoch: 044, LR: 0.00100, Loss: 0.0004, Val: 0.0819, Test: 0.0610
+Epoch: 045, LR: 0.00100, Loss: 0.0004, Val: 0.0841, Test: 0.0610
+Epoch: 046, LR: 0.00100, Loss: 0.0003, Val: 0.0628, Test: 0.0610
+Epoch: 047, LR: 0.00100, Loss: 0.0003, Val: 0.0622, Test: 0.0610
+Epoch: 048, LR: 0.00100, Loss: 0.0003, Val: 0.0781, Test: 0.0610
+Epoch: 049, LR: 0.00100, Loss: 0.0003, Val: 0.0593, Test: 0.0610
+Epoch: 050, LR: 0.00100, Loss: 0.0003, Val: 0.0600, Test: 0.0610
+Epoch: 051, LR: 0.00100, Loss: 0.0003, Val: 0.0559, Test: 0.0593
+Epoch: 052, LR: 0.00100, Loss: 0.0003, Val: 0.0689, Test: 0.0593
+Epoch: 053, LR: 0.00100, Loss: 0.0003, Val: 0.0588, Test: 0.0593
+Epoch: 054, LR: 0.00100, Loss: 0.0003, Val: 0.0551, Test: 0.0588
+Epoch: 055, LR: 0.00100, Loss: 0.0003, Val: 0.0555, Test: 0.0588
+Epoch: 056, LR: 0.00100, Loss: 0.0003, Val: 0.0558, Test: 0.0588
+Epoch: 057, LR: 0.00100, Loss: 0.0002, Val: 0.0626, Test: 0.0588
+Epoch: 058, LR: 0.00100, Loss: 0.0003, Val: 0.0533, Test: 0.0571
+Epoch: 059, LR: 0.00100, Loss: 0.0002, Val: 0.0553, Test: 0.0571
+Epoch: 060, LR: 0.00100, Loss: 0.0002, Val: 0.0558, Test: 0.0571
+Epoch: 061, LR: 0.00100, Loss: 0.0002, Val: 0.0585, Test: 0.0571
+Epoch: 062, LR: 0.00100, Loss: 0.0002, Val: 0.0534, Test: 0.0571
+Epoch: 063, LR: 0.00100, Loss: 0.0002, Val: 0.0614, Test: 0.0571
+Epoch: 064, LR: 0.00100, Loss: 0.0002, Val: 0.0571, Test: 0.0571
+Epoch: 065, LR: 0.00100, Loss: 0.0002, Val: 0.0613, Test: 0.0571
+Epoch: 066, LR: 0.00100, Loss: 0.0002, Val: 0.0546, Test: 0.0571
+Epoch: 067, LR: 0.00100, Loss: 0.0002, Val: 0.0572, Test: 0.0571
+Epoch: 068, LR: 0.00100, Loss: 0.0002, Val: 0.0545, Test: 0.0571
+Epoch: 069, LR: 0.00100, Loss: 0.0002, Val: 0.0521, Test: 0.0569
+Epoch: 070, LR: 0.00100, Loss: 0.0002, Val: 0.0532, Test: 0.0569
+Epoch: 071, LR: 0.00100, Loss: 0.0002, Val: 0.0527, Test: 0.0569
+Epoch: 072, LR: 0.00100, Loss: 0.0002, Val: 0.0519, Test: 0.0551
+Epoch: 073, LR: 0.00100, Loss: 0.0002, Val: 0.0556, Test: 0.0551
+Epoch: 074, LR: 0.00100, Loss: 0.0002, Val: 0.0538, Test: 0.0551
+Epoch: 075, LR: 0.00100, Loss: 0.0002, Val: 0.0533, Test: 0.0551
+Epoch: 076, LR: 0.00100, Loss: 0.0002, Val: 0.0556, Test: 0.0551
+Epoch: 077, LR: 0.00100, Loss: 0.0002, Val: 0.0545, Test: 0.0551
+Epoch: 078, LR: 0.00100, Loss: 0.0002, Val: 0.0501, Test: 0.0532
+Epoch: 079, LR: 0.00100, Loss: 0.0001, Val: 0.0545, Test: 0.0532
+Epoch: 080, LR: 0.00100, Loss: 0.0002, Val: 0.0595, Test: 0.0532
+Epoch: 081, LR: 0.00100, Loss: 0.0001, Val: 0.0520, Test: 0.0532
+Epoch: 082, LR: 0.00100, Loss: 0.0001, Val: 0.0522, Test: 0.0532
+Epoch: 083, LR: 0.00100, Loss: 0.0001, Val: 0.0533, Test: 0.0532
+Epoch: 084, LR: 0.00100, Loss: 0.0001, Val: 0.0574, Test: 0.0532
+Epoch: 085, LR: 0.00100, Loss: 0.0001, Val: 0.0514, Test: 0.0532
+Epoch: 086, LR: 0.00100, Loss: 0.0001, Val: 0.0547, Test: 0.0532
+Epoch: 087, LR: 0.00100, Loss: 0.0001, Val: 0.0520, Test: 0.0532
+Epoch: 088, LR: 0.00100, Loss: 0.0001, Val: 0.0526, Test: 0.0532
+Epoch: 089, LR: 0.00100, Loss: 0.0001, Val: 0.0522, Test: 0.0532
+Epoch: 090, LR: 0.00100, Loss: 0.0001, Val: 0.0524, Test: 0.0532
+Epoch: 091, LR: 0.00100, Loss: 0.0001, Val: 0.0513, Test: 0.0532
+Epoch: 092, LR: 0.00100, Loss: 0.0001, Val: 0.0519, Test: 0.0532
+Epoch: 093, LR: 0.00100, Loss: 0.0001, Val: 0.0562, Test: 0.0532
+Epoch: 094, LR: 0.00100, Loss: 0.0001, Val: 0.0517, Test: 0.0532
+Epoch: 095, LR: 0.00100, Loss: 0.0001, Val: 0.0511, Test: 0.0532
+Epoch: 096, LR: 0.00100, Loss: 0.0001, Val: 0.0538, Test: 0.0532
+Epoch: 097, LR: 0.00100, Loss: 0.0001, Val: 0.0562, Test: 0.0532
+Epoch: 098, LR: 0.00100, Loss: 0.0001, Val: 0.0525, Test: 0.0532
+Epoch: 099, LR: 0.00100, Loss: 0.0001, Val: 0.0519, Test: 0.0532
+Epoch: 100, LR: 0.00050, Loss: 0.0001, Val: 0.0508, Test: 0.0532
+Epoch: 101, LR: 0.00050, Loss: 0.0001, Val: 0.0514, Test: 0.0532
+Epoch: 102, LR: 0.00050, Loss: 0.0001, Val: 0.0524, Test: 0.0532
+Epoch: 103, LR: 0.00050, Loss: 0.0001, Val: 0.0525, Test: 0.0532
+Epoch: 104, LR: 0.00050, Loss: 0.0001, Val: 0.0503, Test: 0.0532
+Epoch: 105, LR: 0.00050, Loss: 0.0001, Val: 0.0498, Test: 0.0528
+Epoch: 106, LR: 0.00050, Loss: 0.0001, Val: 0.0496, Test: 0.0533
+Epoch: 107, LR: 0.00050, Loss: 0.0001, Val: 0.0501, Test: 0.0533
+Epoch: 108, LR: 0.00050, Loss: 0.0001, Val: 0.0506, Test: 0.0533
+Epoch: 109, LR: 0.00050, Loss: 0.0001, Val: 0.0496, Test: 0.0523
+Epoch: 110, LR: 0.00050, Loss: 0.0001, Val: 0.0505, Test: 0.0523
+Epoch: 111, LR: 0.00050, Loss: 0.0001, Val: 0.0501, Test: 0.0523
+Epoch: 112, LR: 0.00050, Loss: 0.0001, Val: 0.0489, Test: 0.0512
+Epoch: 113, LR: 0.00050, Loss: 0.0001, Val: 0.0503, Test: 0.0512
+Epoch: 114, LR: 0.00050, Loss: 0.0001, Val: 0.0507, Test: 0.0512
+Epoch: 115, LR: 0.00050, Loss: 0.0001, Val: 0.0501, Test: 0.0512
+Epoch: 116, LR: 0.00050, Loss: 0.0001, Val: 0.0507, Test: 0.0512
+Epoch: 117, LR: 0.00050, Loss: 0.0001, Val: 0.0509, Test: 0.0512
+Epoch: 118, LR: 0.00050, Loss: 0.0001, Val: 0.0498, Test: 0.0512
+Epoch: 119, LR: 0.00050, Loss: 0.0001, Val: 0.0495, Test: 0.0512
+Epoch: 120, LR: 0.00050, Loss: 0.0001, Val: 0.0498, Test: 0.0512
+Epoch: 121, LR: 0.00050, Loss: 0.0001, Val: 0.0503, Test: 0.0512
+Epoch: 122, LR: 0.00050, Loss: 0.0001, Val: 0.0508, Test: 0.0512
+Epoch: 123, LR: 0.00050, Loss: 0.0001, Val: 0.0502, Test: 0.0512
+Epoch: 124, LR: 0.00050, Loss: 0.0001, Val: 0.0503, Test: 0.0512
+Epoch: 125, LR: 0.00050, Loss: 0.0001, Val: 0.0491, Test: 0.0512
+Epoch: 126, LR: 0.00050, Loss: 0.0001, Val: 0.0502, Test: 0.0512
+Epoch: 127, LR: 0.00050, Loss: 0.0001, Val: 0.0511, Test: 0.0512
+Epoch: 128, LR: 0.00050, Loss: 0.0001, Val: 0.0508, Test: 0.0512
+Epoch: 129, LR: 0.00050, Loss: 0.0001, Val: 0.0497, Test: 0.0512
+Epoch: 130, LR: 0.00050, Loss: 0.0001, Val: 0.0486, Test: 0.0523
+Epoch: 131, LR: 0.00050, Loss: 0.0001, Val: 0.0514, Test: 0.0523
+Epoch: 132, LR: 0.00050, Loss: 0.0001, Val: 0.0504, Test: 0.0523
+Epoch: 133, LR: 0.00050, Loss: 0.0001, Val: 0.0492, Test: 0.0523
+Epoch: 134, LR: 0.00050, Loss: 0.0001, Val: 0.0481, Test: 0.0515
+Epoch: 135, LR: 0.00050, Loss: 0.0001, Val: 0.0515, Test: 0.0515
+Epoch: 136, LR: 0.00050, Loss: 0.0001, Val: 0.0500, Test: 0.0515
+Epoch: 137, LR: 0.00050, Loss: 0.0001, Val: 0.0480, Test: 0.0511
+Epoch: 138, LR: 0.00050, Loss: 0.0001, Val: 0.0485, Test: 0.0511
+Epoch: 139, LR: 0.00050, Loss: 0.0001, Val: 0.0499, Test: 0.0511
+Epoch: 140, LR: 0.00050, Loss: 0.0001, Val: 0.0531, Test: 0.0511
+Epoch: 141, LR: 0.00050, Loss: 0.0001, Val: 0.0490, Test: 0.0511
+Epoch: 142, LR: 0.00050, Loss: 0.0001, Val: 0.0504, Test: 0.0511
+Epoch: 143, LR: 0.00050, Loss: 0.0001, Val: 0.0509, Test: 0.0511
+Epoch: 144, LR: 0.00050, Loss: 0.0001, Val: 0.0500, Test: 0.0511
+Epoch: 145, LR: 0.00050, Loss: 0.0001, Val: 0.0493, Test: 0.0511
+Epoch: 146, LR: 0.00050, Loss: 0.0001, Val: 0.0500, Test: 0.0511
+Epoch: 147, LR: 0.00050, Loss: 0.0001, Val: 0.0491, Test: 0.0511
+Epoch: 148, LR: 0.00050, Loss: 0.0001, Val: 0.0511, Test: 0.0511
+Epoch: 149, LR: 0.00050, Loss: 0.0001, Val: 0.0481, Test: 0.0511
+Epoch: 150, LR: 0.00050, Loss: 0.0001, Val: 0.0480, Test: 0.0511
+Epoch: 151, LR: 0.00050, Loss: 0.0001, Val: 0.0494, Test: 0.0511
+Epoch: 152, LR: 0.00050, Loss: 0.0001, Val: 0.0489, Test: 0.0511
+Epoch: 153, LR: 0.00050, Loss: 0.0001, Val: 0.0499, Test: 0.0511
+Epoch: 154, LR: 0.00050, Loss: 0.0001, Val: 0.0499, Test: 0.0511
+Epoch: 155, LR: 0.00050, Loss: 0.0001, Val: 0.0505, Test: 0.0511
+Epoch: 156, LR: 0.00050, Loss: 0.0001, Val: 0.0494, Test: 0.0511
+Epoch: 157, LR: 0.00050, Loss: 0.0001, Val: 0.0506, Test: 0.0511
+Epoch: 158, LR: 0.00050, Loss: 0.0001, Val: 0.0494, Test: 0.0511
+Epoch: 159, LR: 0.00025, Loss: 0.0001, Val: 0.0489, Test: 0.0511
+Epoch: 160, LR: 0.00025, Loss: 0.0000, Val: 0.0477, Test: 0.0506
+Epoch: 161, LR: 0.00025, Loss: 0.0001, Val: 0.0481, Test: 0.0506
+Epoch: 162, LR: 0.00025, Loss: 0.0000, Val: 0.0481, Test: 0.0506
+Epoch: 163, LR: 0.00025, Loss: 0.0000, Val: 0.0491, Test: 0.0506
+Epoch: 164, LR: 0.00025, Loss: 0.0001, Val: 0.0486, Test: 0.0506
+Epoch: 165, LR: 0.00025, Loss: 0.0000, Val: 0.0483, Test: 0.0506
+Epoch: 166, LR: 0.00025, Loss: 0.0000, Val: 0.0488, Test: 0.0506
+Epoch: 167, LR: 0.00025, Loss: 0.0000, Val: 0.0484, Test: 0.0506
+Epoch: 168, LR: 0.00025, Loss: 0.0000, Val: 0.0493, Test: 0.0506
+Epoch: 169, LR: 0.00025, Loss: 0.0000, Val: 0.0492, Test: 0.0506
+Epoch: 170, LR: 0.00025, Loss: 0.0000, Val: 0.0481, Test: 0.0506
+Epoch: 171, LR: 0.00025, Loss: 0.0000, Val: 0.0489, Test: 0.0506
+Epoch: 172, LR: 0.00025, Loss: 0.0000, Val: 0.0485, Test: 0.0506
+Epoch: 173, LR: 0.00025, Loss: 0.0000, Val: 0.0497, Test: 0.0506
+Epoch: 174, LR: 0.00025, Loss: 0.0000, Val: 0.0479, Test: 0.0506
+Epoch: 175, LR: 0.00025, Loss: 0.0000, Val: 0.0484, Test: 0.0506
+Epoch: 176, LR: 0.00025, Loss: 0.0000, Val: 0.0482, Test: 0.0506
+Epoch: 177, LR: 0.00025, Loss: 0.0001, Val: 0.0492, Test: 0.0506
+Epoch: 178, LR: 0.00025, Loss: 0.0000, Val: 0.0504, Test: 0.0506
+Epoch: 179, LR: 0.00025, Loss: 0.0000, Val: 0.0495, Test: 0.0506
+Epoch: 180, LR: 0.00025, Loss: 0.0000, Val: 0.0492, Test: 0.0506
+Epoch: 181, LR: 0.00025, Loss: 0.0000, Val: 0.0488, Test: 0.0506
+Epoch: 182, LR: 0.00013, Loss: 0.0000, Val: 0.0496, Test: 0.0506
+Epoch: 183, LR: 0.00013, Loss: 0.0000, Val: 0.0489, Test: 0.0506
+Epoch: 184, LR: 0.00013, Loss: 0.0000, Val: 0.0494, Test: 0.0506
+Epoch: 185, LR: 0.00013, Loss: 0.0000, Val: 0.0489, Test: 0.0506
+Epoch: 186, LR: 0.00013, Loss: 0.0000, Val: 0.0487, Test: 0.0506
+Epoch: 187, LR: 0.00013, Loss: 0.0000, Val: 0.0484, Test: 0.0506
+Epoch: 188, LR: 0.00013, Loss: 0.0000, Val: 0.0496, Test: 0.0506
+Epoch: 189, LR: 0.00013, Loss: 0.0000, Val: 0.0488, Test: 0.0506
+Epoch: 190, LR: 0.00013, Loss: 0.0000, Val: 0.0497, Test: 0.0506
+Epoch: 191, LR: 0.00013, Loss: 0.0000, Val: 0.0490, Test: 0.0506
+Epoch: 192, LR: 0.00013, Loss: 0.0000, Val: 0.0487, Test: 0.0506
+Epoch: 193, LR: 0.00013, Loss: 0.0000, Val: 0.0496, Test: 0.0506
+Epoch: 194, LR: 0.00013, Loss: 0.0000, Val: 0.0493, Test: 0.0506
+Epoch: 195, LR: 0.00013, Loss: 0.0000, Val: 0.0488, Test: 0.0506
+Epoch: 196, LR: 0.00013, Loss: 0.0000, Val: 0.0491, Test: 0.0506
+Epoch: 197, LR: 0.00013, Loss: 0.0000, Val: 0.0490, Test: 0.0506
+Epoch: 198, LR: 0.00013, Loss: 0.0000, Val: 0.0495, Test: 0.0506
+Epoch: 199, LR: 0.00013, Loss: 0.0000, Val: 0.0491, Test: 0.0506
+Epoch: 200, LR: 0.00013, Loss: 0.0000, Val: 0.0488, Test: 0.0506

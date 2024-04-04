@@ -32,6 +32,8 @@ the component-wise attention mechanism to capture the global information of the 
 then used as the [CLS] token of the molecule, thus termed as the spectral token.
 
 ## Results
+To date of April 2024, SubFormer-Spec ranks the 1st on the Peptides-Struct dataset from the LRGB benchmark, the 3rd on the Peptides-Function dataset.
+And 5th on the ZINC dataset on PapersWithCode.
 
 The SubFormer-Spec model is evaluated on the OGB, ZINC, and LRGB datasets. Part of results are shown in the following table:
 
@@ -70,8 +72,6 @@ reported results on LRGB dataset, the GraphTrans-Spec model receives more than 1
 | Pep-Func | 0.6313±0.0039      | **0.6957±0.0115**       |
 
 
-
-
 ## Requirements
 
 - Python
@@ -101,6 +101,8 @@ python scripts/opda.py
 cp ./subformer/datasets/opda.db yourdatasetfolder/raw/opda.db
 python scripts/opda.py
 ```
+
+Under 'logs' folder, some configurations and results are provided for reference and as the starting point for tuning the model.
 
 ## Model Visualization on a OLED-like molecule
 

@@ -113,4 +113,44 @@ The figure shows that the transformer is able to capture the local (functional g
 ![SubFormer-Spec](./Figs/opda_attn.jpg)
 
 
+## Citation
 
+SubFormer architecture is proposed in the following paper:
+
+```bibtex
+@inproceedings{
+pengmei2023transformers,
+title={Transformers are efficient hierarchical chemical graph learners},
+author={Zihan Pengmei and Zimu Li and Chih-chan Tien and Risi Kondor and Aaron Dinner},
+booktitle={NeurIPS 2023 AI for Science Workshop},
+year={2023},
+url={https://openreview.net/forum?id=g0fOI1bE1C}
+}
+```
+The Spectral token draft is in preparation. Please cite the above paper if you use the SubFormer-Spec model.
+
+The OPDA dataset is accessed from https://cmr.fysik.dtu.dk/solar/solar.html. 
+
+The citation of the following paper is also recommended for the coarsening method:
+
+```bibtex
+@inproceedings{jin2018junction,
+  title={Junction tree variational autoencoder for molecular graph generation},
+  author={Jin, Wengong and Barzilay, Regina and Jaakkola, Tommi},
+  booktitle={International conference on machine learning},
+  pages={2323--2332},
+  year={2018},
+  organization={PMLR}
+}
+@article{fey2020hierarchical,
+  title={Hierarchical inter-message passing for learning on molecular graphs},
+  author={Fey, Matthias and Yuen, Jan-Gin and Weichert, Frank},
+  journal={arXiv preprint arXiv:2006.12179},
+  year={2020}
+}
+```
+
+
+## Contact
+
+Please feel free to submit issue tickets or contact Zihan Pengmei (zpengmei@uchicago.edu) for any questions of using the code.

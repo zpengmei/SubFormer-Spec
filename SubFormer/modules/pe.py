@@ -136,8 +136,6 @@ class PositionalEncoding(torch.nn.Module):
                     tree_pe = self.tree_lpe_lin(tree_pe) + self.tree_lpe_lin(-tree_pe)
                 else:
                     tree_pe = self.tree_lpe_lin(tree_pe)
-            row, col = data.atom2clique_index
-            tree_pe = scatter(tree_pe[row], col, dim=0, dim_size=x_clique.size(0), reduce='mean')
             if self.concat_pe:
                 x_clique = torch.cat([x_clique, tree_pe], dim=-1)
             else:

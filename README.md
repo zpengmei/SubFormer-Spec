@@ -112,6 +112,9 @@ The figure shows that the transformer is able to capture the local (functional g
 
 ![SubFormer-Spec](./Figs/opda_attn.jpg)
 
+## Technical Report
+
+We provide a technical report to explain the Spectral token and the SubFormer-Spec model. The technical report is available at [Technical Report](The_Graph_Spectral_Token.pdf).
 
 ## Citation
 

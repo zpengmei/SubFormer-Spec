@@ -1,3 +1,6 @@
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/the-graph-spectral-token-enhancing-graph/graph-regression-on-peptides-struct)](https://paperswithcode.com/sota/graph-regression-on-peptides-struct?p=the-graph-spectral-token-enhancing-graph)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/the-graph-spectral-token-enhancing-graph/graph-classification-on-peptides-func)](https://paperswithcode.com/sota/graph-classification-on-peptides-func?p=the-graph-spectral-token-enhancing-graph)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/the-graph-spectral-token-enhancing-graph/graph-regression-on-zinc)](https://paperswithcode.com/sota/graph-regression-on-zinc?p=the-graph-spectral-token-enhancing-graph)
 # SubFormer-Spec: SubGraph Transformer with the Spectral Token
 
 ![SubFormer-Spec](./Figs/cospec.jpg)

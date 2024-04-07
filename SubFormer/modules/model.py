@@ -31,6 +31,7 @@ class SubFormer(torch.nn.Module):
                  pe_dim: int = 10,
                  pe_activation: str = 'gelu',
                  bypass: bool = False,
+                 pe_source: str = 'both',
                  ### Spectrum part ###
                  spec_attention: bool = False,
                  num_eig_graphs: int = 16,
@@ -60,6 +61,7 @@ class SubFormer(torch.nn.Module):
                                      signet=signet,
                                      activation=pe_activation,
                                      bypass=bypass,
+                                     pe_source=pe_source,
                                      )
 
         self.encoder = Encoder(d_model=d_model,

@@ -12,8 +12,11 @@ class PositionalEncoding(torch.nn.Module):
                  concat_pe: bool = False,
                  signet: bool = False,
                  bypass: bool = False,
+                 pe_source: str = 'both',
                  ):
         super(PositionalEncoding, self).__init__()
+
+        assert pe_source in ['both', 'graph', 'tree']
 
         self.concat_pe = concat_pe
         self.signet = signet
@@ -32,20 +35,45 @@ class PositionalEncoding(torch.nn.Module):
         self.deg_lin = Linear(hidden_channels, hidden_channels)
         self.deg_merge = Linear(hidden_channels, hidden_channels)
 
-        self.tree_lpe_lin = Linear(pe_dim, hidden_channels // 2)
-        self.lpe_lin = Linear(pe_dim, hidden_channels // 2)
+        if pe_source == 'both':
 
-        if signet:
-            self.tree_lpe_lin = Sequential(
-                torch.nn.Linear(pe_dim, hidden_channels // 2),
-                self.activation,
-                torch.nn.Linear(hidden_channels // 2, hidden_channels // 2)
-            )
-            self.lpe_lin = Sequential(
-                torch.nn.Linear(pe_dim, hidden_channels // 2),
-                self.activation,
-                torch.nn.Linear(hidden_channels // 2, hidden_channels // 2)
-            )
+            self.tree_lpe_lin = Linear(pe_dim, hidden_channels // 2)
+            self.lpe_lin = Linear(pe_dim, hidden_channels // 2)
+
+            if signet:
+                self.tree_lpe_lin = Sequential(
+                    torch.nn.Linear(pe_dim, hidden_channels // 2),
+                    self.activation,
+                    torch.nn.Linear(hidden_channels // 2, hidden_channels // 2)
+                )
+                self.lpe_lin = Sequential(
+                    torch.nn.Linear(pe_dim, hidden_channels // 2),
+                    self.activation,
+                    torch.nn.Linear(hidden_channels // 2, hidden_channels // 2)
+                )
+
+        elif pe_source == 'graph' or pe_source == 'tree':
+            self.tree_lpe_lin = Linear(pe_dim, hidden_channels)
+            self.lpe_lin = Linear(pe_dim, hidden_channels)
+
+            if signet:
+                self.tree_lpe_lin = Sequential(
+                    torch.nn.Linear(pe_dim, hidden_channels),
+                    self.activation,
+                    torch.nn.Linear(hidden_channels, hidden_channels)
+                )
+                self.lpe_lin = Sequential(
+                    torch.nn.Linear(pe_dim, hidden_channels),
+                    self.activation,
+                    torch.nn.Linear(hidden_channels, hidden_channels)
+                )
+
+            if pe_source == 'graph':
+                del self.tree_lpe_lin
+            elif pe_source == 'tree':
+                del self.lpe_lin
+
+        self.pe_source = pe_source
 
     def forward(self, data: Data, x_clique: torch.Tensor) -> torch.Tensor:
 
@@ -63,25 +91,56 @@ class PositionalEncoding(torch.nn.Module):
         tree_pe_mask = torch.isnan(tree_pe)
         tree_pe[tree_pe_mask] = 0
 
-        if self.signet:
-            tree_pe = self.tree_lpe_lin(tree_pe) + self.tree_lpe_lin(-tree_pe)
-            pe = self.lpe_lin(pe) + self.lpe_lin(-pe)
-
-        else:
-            if self.bypass:
+        if self.pe_source == 'both':
+            if self.signet:
                 tree_pe = self.tree_lpe_lin(tree_pe) + self.tree_lpe_lin(-tree_pe)
                 pe = self.lpe_lin(pe) + self.lpe_lin(-pe)
+
             else:
-                tree_pe = self.tree_lpe_lin(tree_pe)
-                pe = self.lpe_lin(pe)
+                if self.bypass:
+                    tree_pe = self.tree_lpe_lin(tree_pe) + self.tree_lpe_lin(-tree_pe)
+                    pe = self.lpe_lin(pe) + self.lpe_lin(-pe)
+                else:
+                    tree_pe = self.tree_lpe_lin(tree_pe)
+                    pe = self.lpe_lin(pe)
 
-        row, col = data.atom2clique_index
-        pe = scatter(pe[row], col, dim=0, dim_size=x_clique.size(0), reduce='mean')
+            row, col = data.atom2clique_index
+            pe = scatter(pe[row], col, dim=0, dim_size=x_clique.size(0), reduce='mean')
 
-        if self.concat_pe:
-            x_clique = torch.cat([x_clique, pe, tree_pe], dim=-1)
+            if self.concat_pe:
+                x_clique = torch.cat([x_clique, pe, tree_pe], dim=-1)
 
-        else:
-            x_clique = x_clique + torch.cat([pe, tree_pe], dim=-1)
+            else:
+                x_clique = x_clique + torch.cat([pe, tree_pe], dim=-1)
+
+        elif self.pe_source == 'graph':
+            if self.signet:
+                pe = self.lpe_lin(pe) + self.lpe_lin(-pe)
+            else:
+                if self.bypass:
+                    pe = self.lpe_lin(pe) + self.lpe_lin(-pe)
+                else:
+                    pe = self.lpe_lin(pe)
+            row, col = data.atom2clique_index
+            pe = scatter(pe[row], col, dim=0, dim_size=x_clique.size(0), reduce='mean')
+            if self.concat_pe:
+                x_clique = torch.cat([x_clique, pe], dim=-1)
+            else:
+                x_clique = x_clique + pe
+
+        elif self.pe_source == 'tree':
+            if self.signet:
+                tree_pe = self.tree_lpe_lin(tree_pe) + self.tree_lpe_lin(-tree_pe)
+            else:
+                if self.bypass:
+                    tree_pe = self.tree_lpe_lin(tree_pe) + self.tree_lpe_lin(-tree_pe)
+                else:
+                    tree_pe = self.tree_lpe_lin(tree_pe)
+            row, col = data.atom2clique_index
+            tree_pe = scatter(tree_pe[row], col, dim=0, dim_size=x_clique.size(0), reduce='mean')
+            if self.concat_pe:
+                x_clique = torch.cat([x_clique, tree_pe], dim=-1)
+            else:
+                x_clique = x_clique + tree_pe
 
         return x_clique

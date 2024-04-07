@@ -11,7 +11,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 set_seed(4321)
 
 root = './dataset_zinc'
-transform = get_transform_zinc(pedim=16)
+transform = get_transform_zinc(pedim=10)
 val_dataset = ZINC(root, subset=True, split='val', pre_transform=transform)
 train_dataset = ZINC(root, subset=True, split='train', pre_transform=transform)
 test_dataset = ZINC(root, subset=True, split='test', pre_transform=transform)
@@ -35,7 +35,7 @@ model = SF(
     readout_act='relu',
     aggregation='sum',
     pe_fea=False,
-    pe_dim=16,
+    pe_dim=10,
     n_head=8,
     d_model=128,
     dim_feedforward=128,
@@ -46,6 +46,8 @@ model = SF(
     concat_pe=True,
     signet=True,
     no_spec=False,
+    bypass=False,
+    pe_source='tree',
 ).to(device)
 print(model)
 
@@ -102,7 +104,7 @@ for epoch in range(1, total_epochs + 1):
         scheduler_cosine.step()
 
     lr = optimizer.param_groups[0]['lr']
-    loss = train(epoch)
+    loss = train()
     val_mae = test(val_loader)
 
     if val_mae < best_val_mae:

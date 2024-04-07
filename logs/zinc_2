@@ -1,0 +1,1137 @@
+# different dim and batch size, testing implementation
+
+transform = get_transform_zinc(pedim=10)
+val_dataset = ZINC(root, subset=True, split='val', pre_transform=transform)
+train_dataset = ZINC(root, subset=True, split='train', pre_transform=transform)
+test_dataset = ZINC(root, subset=True, split='test', pre_transform=transform)
+train_loader = DataLoader(train_dataset, 64, shuffle=True)
+val_loader = DataLoader(val_dataset, 1000, shuffle=False)
+test_loader = DataLoader(test_dataset, 1000, shuffle=False)
+
+# Total number of epochs and warm-up epochs
+total_epochs = 1000
+warmup_epochs = 50
+
+model = SF(
+    hidden_channels=64,
+    out_channels=1,
+    num_mp_layers=2,
+    num_enc_layers=3,
+    mp_dropout=0,
+    enc_dropout=0.1,
+    local_mp='gine',
+    enc_activation='relu',
+    readout_act='relu',
+    aggregation='sum',
+    pe_fea=False,
+    pe_dim=10,
+    n_head=8,
+    d_model=128,
+    dim_feedforward=128,
+    spec_attention=True,
+    expand_spec=False,
+    num_eig_graphs=10,
+    num_eig_trees=10,
+    concat_pe=True,
+    signet=True,
+    no_spec=False,
+    bypass=False,
+    dual_readout=True,
+    pe_source='graph',
+).to(device)
+
+(pytorch) zpengmei@zpengmeiwork:~/Apps/SubFormer-Spec/scripts$ python zinc.py
+Random seed set as 4321
+/home/zpengmei/miniforge3/envs/pytorch/lib/python3.11/site-packages/torch_geometric/deprecation.py:22: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  warnings.warn(out)
+SubFormer(
+  (local_mp): LocalMP(
+    (atom_encoder): AtomEncoder(
+      (embeddings): ModuleList(
+        (0-8): 9 x Embedding(100, 64)
+      )
+    )
+    (clique_encoder): Embedding(4, 64)
+    (bond_encoders): ModuleList(
+      (0-1): 2 x BondEncoder(
+        (embeddings): ModuleList(
+          (0-2): 3 x Embedding(6, 64)
+        )
+      )
+    )
+    (graph_convs): ModuleList(
+      (0-1): 2 x GINEConv(nn=Sequential(
+        (0): Linear(in_features=64, out_features=128, bias=True)
+        (1): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU()
+        (3): Linear(in_features=128, out_features=64, bias=True)
+      ))
+    )
+    (graph_norms): ModuleList(
+      (0-1): 2 x BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (sub_norms): ModuleList(
+      (0-1): 2 x BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (atom2clique_lins): ModuleList(
+      (0-1): 2 x Linear(in_features=64, out_features=64, bias=True)
+    )
+    (clique2atom_lins): ModuleList(
+      (0-1): 2 x Linear(in_features=64, out_features=64, bias=True)
+    )
+    (clique): Linear(in_features=64, out_features=64, bias=True)
+  )
+  (pe): PositionalEncoding(
+    (activation): GELU(approximate='none')
+    (deg_emb): Embedding(100, 64)
+    (deg_lin): Linear(in_features=64, out_features=64, bias=True)
+    (deg_merge): Linear(in_features=64, out_features=64, bias=True)
+    (lpe_lin): Sequential(
+      (0): Linear(in_features=10, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Linear(in_features=64, out_features=64, bias=True)
+    )
+  )
+  (encoder): Encoder(
+    (activation): ReLU()
+    (encoder_layer): TransformerEncoderLayer(
+      (self_attn): MultiheadAttention(
+        (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True)
+      )
+      (linear1): Linear(in_features=128, out_features=128, bias=True)
+      (dropout): Dropout(p=0.1, inplace=False)
+      (linear2): Linear(in_features=128, out_features=128, bias=True)
+      (norm1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (norm2): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (dropout1): Dropout(p=0.1, inplace=False)
+      (dropout2): Dropout(p=0.1, inplace=False)
+    )
+    (encoder): TransformerEncoder(
+      (layers): ModuleList(
+        (0-2): 3 x TransformerEncoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=128, out_features=128, bias=True)
+          )
+          (linear1): Linear(in_features=128, out_features=128, bias=True)
+          (dropout): Dropout(p=0.1, inplace=False)
+          (linear2): Linear(in_features=128, out_features=128, bias=True)
+          (norm1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (norm2): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (dropout1): Dropout(p=0.1, inplace=False)
+          (dropout2): Dropout(p=0.1, inplace=False)
+        )
+      )
+    )
+  )
+  (activation): ReLU()
+  (readout): Sequential(
+    (0): Linear(in_features=192, out_features=128, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+Number of parameters:  579543
+/home/zpengmei/miniforge3/envs/pytorch/lib/python3.11/site-packages/torch/nn/modules/transformer.py:380: UserWarning: The PyTorch API of nested tensors is in prototype stage and will change in the near future. (Triggered internally at /opt/conda/conda-bld/pytorch_1702400430266/work/aten/src/ATen/NestedTensorImpl.cpp:178.)
+  output = torch._nested_tensor_from_mask(output, src_key_padding_mask.logical_not(), mask_check=False)
+Epoch: 001, LR: 0.00002, Loss: 1.0823, Val: 0.8021, Test: 0.8589
+Epoch: 002, LR: 0.00004, Loss: 0.6964, Val: 0.5671, Test: 0.5844
+Epoch: 003, LR: 0.00006, Loss: 0.5572, Val: 0.4660, Test: 0.4808
+Epoch: 004, LR: 0.00008, Loss: 0.4882, Val: 0.4175, Test: 0.4340
+Epoch: 005, LR: 0.00010, Loss: 0.4423, Val: 0.5180, Test: 0.4340
+Epoch: 006, LR: 0.00012, Loss: 0.4338, Val: 0.4324, Test: 0.4340
+Epoch: 007, LR: 0.00014, Loss: 0.3994, Val: 0.4639, Test: 0.4340
+Epoch: 008, LR: 0.00016, Loss: 0.3753, Val: 0.3581, Test: 0.3590
+Epoch: 009, LR: 0.00018, Loss: 0.3469, Val: 0.3866, Test: 0.3590
+Epoch: 010, LR: 0.00020, Loss: 0.3383, Val: 0.2986, Test: 0.2893
+Epoch: 011, LR: 0.00022, Loss: 0.3237, Val: 0.3830, Test: 0.2893
+Epoch: 012, LR: 0.00024, Loss: 0.3148, Val: 0.2898, Test: 0.2800
+Epoch: 013, LR: 0.00026, Loss: 0.2859, Val: 0.2835, Test: 0.2538
+Epoch: 014, LR: 0.00028, Loss: 0.2882, Val: 0.3334, Test: 0.2538
+Epoch: 015, LR: 0.00030, Loss: 0.2685, Val: 0.3406, Test: 0.2538
+Epoch: 016, LR: 0.00032, Loss: 0.2699, Val: 0.2526, Test: 0.2280
+Epoch: 017, LR: 0.00034, Loss: 0.2652, Val: 0.4154, Test: 0.2280
+Epoch: 018, LR: 0.00036, Loss: 0.2556, Val: 0.2977, Test: 0.2280
+Epoch: 019, LR: 0.00038, Loss: 0.2825, Val: 0.5566, Test: 0.2280
+Epoch: 020, LR: 0.00040, Loss: 0.2512, Val: 0.2572, Test: 0.2280
+Epoch: 021, LR: 0.00042, Loss: 0.2494, Val: 0.2833, Test: 0.2280
+Epoch: 022, LR: 0.00044, Loss: 0.2511, Val: 0.2595, Test: 0.2280
+Epoch: 023, LR: 0.00046, Loss: 0.2427, Val: 0.2875, Test: 0.2280
+Epoch: 024, LR: 0.00048, Loss: 0.2432, Val: 0.2866, Test: 0.2280
+Epoch: 025, LR: 0.00050, Loss: 0.2486, Val: 0.2317, Test: 0.2198
+Epoch: 026, LR: 0.00052, Loss: 0.2300, Val: 0.2490, Test: 0.2198
+Epoch: 027, LR: 0.00054, Loss: 0.2385, Val: 0.2456, Test: 0.2198
+Epoch: 028, LR: 0.00056, Loss: 0.2299, Val: 0.2103, Test: 0.1934
+Epoch: 029, LR: 0.00058, Loss: 0.2354, Val: 0.2710, Test: 0.1934
+Epoch: 030, LR: 0.00060, Loss: 0.2289, Val: 0.2506, Test: 0.1934
+Epoch: 031, LR: 0.00062, Loss: 0.2184, Val: 0.2659, Test: 0.1934
+Epoch: 032, LR: 0.00064, Loss: 0.2267, Val: 0.2879, Test: 0.1934
+Epoch: 033, LR: 0.00066, Loss: 0.2302, Val: 0.3823, Test: 0.1934
+Epoch: 034, LR: 0.00068, Loss: 0.2347, Val: 0.2578, Test: 0.1934
+Epoch: 035, LR: 0.00070, Loss: 0.2387, Val: 0.3867, Test: 0.1934
+Epoch: 036, LR: 0.00072, Loss: 0.2408, Val: 0.2052, Test: 0.1870
+Epoch: 037, LR: 0.00074, Loss: 0.2189, Val: 0.3852, Test: 0.1870
+Epoch: 038, LR: 0.00076, Loss: 0.2281, Val: 0.2892, Test: 0.1870
+Epoch: 039, LR: 0.00078, Loss: 0.2180, Val: 0.2335, Test: 0.1870
+Epoch: 040, LR: 0.00080, Loss: 0.2340, Val: 0.3870, Test: 0.1870
+Epoch: 041, LR: 0.00082, Loss: 0.2310, Val: 0.2489, Test: 0.1870
+Epoch: 042, LR: 0.00084, Loss: 0.2156, Val: 0.2078, Test: 0.1870
+Epoch: 043, LR: 0.00086, Loss: 0.2203, Val: 0.2731, Test: 0.1870
+Epoch: 044, LR: 0.00088, Loss: 0.2576, Val: 0.2995, Test: 0.1870
+Epoch: 045, LR: 0.00090, Loss: 0.1997, Val: 0.2677, Test: 0.1870
+Epoch: 046, LR: 0.00092, Loss: 0.2288, Val: 0.2112, Test: 0.1870
+Epoch: 047, LR: 0.00094, Loss: 0.2098, Val: 0.3291, Test: 0.1870
+Epoch: 048, LR: 0.00096, Loss: 0.2020, Val: 0.2363, Test: 0.1870
+Epoch: 049, LR: 0.00098, Loss: 0.2162, Val: 0.1962, Test: 0.1901
+Epoch: 050, LR: 0.00100, Loss: 0.2074, Val: 0.3421, Test: 0.1901
+Epoch: 051, LR: 0.00100, Loss: 0.2006, Val: 0.2623, Test: 0.1901
+Epoch: 052, LR: 0.00100, Loss: 0.1967, Val: 0.2052, Test: 0.1901
+Epoch: 053, LR: 0.00100, Loss: 0.2040, Val: 0.2466, Test: 0.1901
+Epoch: 054, LR: 0.00100, Loss: 0.1989, Val: 0.2093, Test: 0.1901
+Epoch: 055, LR: 0.00100, Loss: 0.1860, Val: 0.1706, Test: 0.1704
+Epoch: 056, LR: 0.00100, Loss: 0.1878, Val: 0.2289, Test: 0.1704
+Epoch: 057, LR: 0.00100, Loss: 0.1841, Val: 0.2891, Test: 0.1704
+Epoch: 058, LR: 0.00100, Loss: 0.1928, Val: 0.1818, Test: 0.1704
+Epoch: 059, LR: 0.00100, Loss: 0.1768, Val: 0.2181, Test: 0.1704
+Epoch: 060, LR: 0.00100, Loss: 0.1854, Val: 0.3530, Test: 0.1704
+Epoch: 061, LR: 0.00100, Loss: 0.1990, Val: 0.1756, Test: 0.1704
+Epoch: 062, LR: 0.00100, Loss: 0.1892, Val: 0.1766, Test: 0.1704
+Epoch: 063, LR: 0.00100, Loss: 0.1745, Val: 0.1867, Test: 0.1704
+Epoch: 064, LR: 0.00100, Loss: 0.1772, Val: 0.1507, Test: 0.1438
+Epoch: 065, LR: 0.00100, Loss: 0.1651, Val: 0.2444, Test: 0.1438
+Epoch: 066, LR: 0.00100, Loss: 0.1939, Val: 0.2951, Test: 0.1438
+Epoch: 067, LR: 0.00100, Loss: 0.1919, Val: 0.2017, Test: 0.1438
+Epoch: 068, LR: 0.00100, Loss: 0.1580, Val: 0.1811, Test: 0.1438
+Epoch: 069, LR: 0.00100, Loss: 0.1752, Val: 0.1838, Test: 0.1438
+Epoch: 070, LR: 0.00100, Loss: 0.1747, Val: 0.3066, Test: 0.1438
+Epoch: 071, LR: 0.00100, Loss: 0.1750, Val: 0.1741, Test: 0.1438
+Epoch: 072, LR: 0.00100, Loss: 0.1646, Val: 0.1562, Test: 0.1438
+Epoch: 073, LR: 0.00100, Loss: 0.1597, Val: 0.1588, Test: 0.1438
+Epoch: 074, LR: 0.00100, Loss: 0.1507, Val: 0.1699, Test: 0.1438
+Epoch: 075, LR: 0.00100, Loss: 0.1604, Val: 0.1754, Test: 0.1438
+Epoch: 076, LR: 0.00100, Loss: 0.1715, Val: 0.1839, Test: 0.1438
+Epoch: 077, LR: 0.00100, Loss: 0.1628, Val: 0.1997, Test: 0.1438
+Epoch: 078, LR: 0.00100, Loss: 0.1615, Val: 0.2053, Test: 0.1438
+Epoch: 079, LR: 0.00100, Loss: 0.1539, Val: 0.3422, Test: 0.1438
+Epoch: 080, LR: 0.00100, Loss: 0.1571, Val: 0.1473, Test: 0.1391
+Epoch: 081, LR: 0.00100, Loss: 0.1510, Val: 0.1844, Test: 0.1391
+Epoch: 082, LR: 0.00100, Loss: 0.1758, Val: 0.2300, Test: 0.1391
+Epoch: 083, LR: 0.00100, Loss: 0.1899, Val: 0.1777, Test: 0.1391
+Epoch: 084, LR: 0.00100, Loss: 0.1534, Val: 0.1909, Test: 0.1391
+Epoch: 085, LR: 0.00100, Loss: 0.1442, Val: 0.1451, Test: 0.1482
+Epoch: 086, LR: 0.00100, Loss: 0.1405, Val: 0.1518, Test: 0.1482
+Epoch: 087, LR: 0.00100, Loss: 0.1413, Val: 0.1831, Test: 0.1482
+Epoch: 088, LR: 0.00100, Loss: 0.1490, Val: 0.1697, Test: 0.1482
+Epoch: 089, LR: 0.00100, Loss: 0.1402, Val: 0.1577, Test: 0.1482
+Epoch: 090, LR: 0.00100, Loss: 0.1435, Val: 0.2207, Test: 0.1482
+Epoch: 091, LR: 0.00100, Loss: 0.1364, Val: 0.1546, Test: 0.1482
+Epoch: 092, LR: 0.00100, Loss: 0.1315, Val: 0.1440, Test: 0.1363
+Epoch: 093, LR: 0.00099, Loss: 0.1325, Val: 0.1388, Test: 0.1354
+Epoch: 094, LR: 0.00099, Loss: 0.1312, Val: 0.1995, Test: 0.1354
+Epoch: 095, LR: 0.00099, Loss: 0.1332, Val: 0.1385, Test: 0.1382
+Epoch: 096, LR: 0.00099, Loss: 0.1269, Val: 0.1484, Test: 0.1382
+Epoch: 097, LR: 0.00099, Loss: 0.1318, Val: 0.1529, Test: 0.1382
+Epoch: 098, LR: 0.00099, Loss: 0.1258, Val: 0.2245, Test: 0.1382
+Epoch: 099, LR: 0.00099, Loss: 0.1428, Val: 0.1920, Test: 0.1382
+Epoch: 100, LR: 0.00099, Loss: 0.1334, Val: 0.1327, Test: 0.1427
+Epoch: 101, LR: 0.00099, Loss: 0.1276, Val: 0.1525, Test: 0.1427
+Epoch: 102, LR: 0.00099, Loss: 0.1236, Val: 0.1488, Test: 0.1427
+Epoch: 103, LR: 0.00099, Loss: 0.1252, Val: 0.1633, Test: 0.1427
+Epoch: 104, LR: 0.00099, Loss: 0.1215, Val: 0.1589, Test: 0.1427
+Epoch: 105, LR: 0.00099, Loss: 0.1429, Val: 0.2415, Test: 0.1427
+Epoch: 106, LR: 0.00099, Loss: 0.1372, Val: 0.1410, Test: 0.1427
+Epoch: 107, LR: 0.00099, Loss: 0.1509, Val: 0.1448, Test: 0.1427
+Epoch: 108, LR: 0.00099, Loss: 0.1230, Val: 0.1352, Test: 0.1427
+Epoch: 109, LR: 0.00099, Loss: 0.1228, Val: 0.2124, Test: 0.1427
+Epoch: 110, LR: 0.00099, Loss: 0.1272, Val: 0.1444, Test: 0.1427
+Epoch: 111, LR: 0.00099, Loss: 0.1312, Val: 0.2083, Test: 0.1427
+Epoch: 112, LR: 0.00099, Loss: 0.1141, Val: 0.1499, Test: 0.1427
+Epoch: 113, LR: 0.00099, Loss: 0.1203, Val: 0.1324, Test: 0.1198
+Epoch: 114, LR: 0.00099, Loss: 0.1206, Val: 0.1875, Test: 0.1198
+Epoch: 115, LR: 0.00099, Loss: 0.1264, Val: 0.1343, Test: 0.1198
+Epoch: 116, LR: 0.00099, Loss: 0.1259, Val: 0.1518, Test: 0.1198
+Epoch: 117, LR: 0.00099, Loss: 0.1256, Val: 0.1681, Test: 0.1198
+Epoch: 118, LR: 0.00099, Loss: 0.1252, Val: 0.1363, Test: 0.1198
+Epoch: 119, LR: 0.00099, Loss: 0.1176, Val: 0.1436, Test: 0.1198
+Epoch: 120, LR: 0.00099, Loss: 0.1258, Val: 0.1706, Test: 0.1198
+Epoch: 121, LR: 0.00099, Loss: 0.1246, Val: 0.2060, Test: 0.1198
+Epoch: 122, LR: 0.00099, Loss: 0.1206, Val: 0.1505, Test: 0.1198
+Epoch: 123, LR: 0.00099, Loss: 0.1241, Val: 0.1564, Test: 0.1198
+Epoch: 124, LR: 0.00099, Loss: 0.1146, Val: 0.2243, Test: 0.1198
+Epoch: 125, LR: 0.00098, Loss: 0.1133, Val: 0.1541, Test: 0.1198
+Epoch: 126, LR: 0.00098, Loss: 0.1171, Val: 0.1615, Test: 0.1198
+Epoch: 127, LR: 0.00098, Loss: 0.1070, Val: 0.1360, Test: 0.1198
+Epoch: 128, LR: 0.00098, Loss: 0.1119, Val: 0.1319, Test: 0.1320
+Epoch: 129, LR: 0.00098, Loss: 0.1082, Val: 0.1498, Test: 0.1320
+Epoch: 130, LR: 0.00098, Loss: 0.1103, Val: 0.1456, Test: 0.1320
+Epoch: 131, LR: 0.00098, Loss: 0.1258, Val: 0.2161, Test: 0.1320
+Epoch: 132, LR: 0.00098, Loss: 0.1174, Val: 0.1215, Test: 0.1117
+Epoch: 133, LR: 0.00098, Loss: 0.1071, Val: 0.1548, Test: 0.1117
+Epoch: 134, LR: 0.00098, Loss: 0.1144, Val: 0.1261, Test: 0.1117
+Epoch: 135, LR: 0.00098, Loss: 0.1060, Val: 0.1772, Test: 0.1117
+Epoch: 136, LR: 0.00098, Loss: 0.1085, Val: 0.1383, Test: 0.1117
+Epoch: 137, LR: 0.00098, Loss: 0.1149, Val: 0.1737, Test: 0.1117
+Epoch: 138, LR: 0.00098, Loss: 0.1069, Val: 0.1355, Test: 0.1117
+Epoch: 139, LR: 0.00098, Loss: 0.1062, Val: 0.1190, Test: 0.1190
+Epoch: 140, LR: 0.00098, Loss: 0.1036, Val: 0.1211, Test: 0.1190
+Epoch: 141, LR: 0.00098, Loss: 0.1076, Val: 0.1145, Test: 0.1125
+Epoch: 142, LR: 0.00098, Loss: 0.1078, Val: 0.1172, Test: 0.1125
+Epoch: 143, LR: 0.00098, Loss: 0.0982, Val: 0.1191, Test: 0.1125
+Epoch: 144, LR: 0.00098, Loss: 0.1007, Val: 0.1352, Test: 0.1125
+Epoch: 145, LR: 0.00098, Loss: 0.1018, Val: 0.1182, Test: 0.1125
+Epoch: 146, LR: 0.00098, Loss: 0.0995, Val: 0.1652, Test: 0.1125
+Epoch: 147, LR: 0.00097, Loss: 0.1000, Val: 0.1271, Test: 0.1125
+Epoch: 148, LR: 0.00097, Loss: 0.1010, Val: 0.1229, Test: 0.1125
+Epoch: 149, LR: 0.00097, Loss: 0.1171, Val: 0.1230, Test: 0.1125
+Epoch: 150, LR: 0.00097, Loss: 0.1156, Val: 0.1249, Test: 0.1125
+Epoch: 151, LR: 0.00097, Loss: 0.1098, Val: 0.1462, Test: 0.1125
+Epoch: 152, LR: 0.00097, Loss: 0.2612, Val: 0.2608, Test: 0.1125
+Epoch: 153, LR: 0.00097, Loss: 0.1953, Val: 0.1798, Test: 0.1125
+Epoch: 154, LR: 0.00097, Loss: 0.1586, Val: 0.2082, Test: 0.1125
+Epoch: 155, LR: 0.00097, Loss: 0.1360, Val: 0.1491, Test: 0.1125
+Epoch: 156, LR: 0.00097, Loss: 0.1383, Val: 0.1965, Test: 0.1125
+Epoch: 157, LR: 0.00097, Loss: 0.1325, Val: 0.1263, Test: 0.1125
+Epoch: 158, LR: 0.00097, Loss: 0.1152, Val: 0.1413, Test: 0.1125
+Epoch: 159, LR: 0.00097, Loss: 0.1151, Val: 0.1211, Test: 0.1125
+Epoch: 160, LR: 0.00097, Loss: 0.1071, Val: 0.1397, Test: 0.1125
+Epoch: 161, LR: 0.00097, Loss: 0.1110, Val: 0.1453, Test: 0.1125
+Epoch: 162, LR: 0.00097, Loss: 0.1033, Val: 0.1176, Test: 0.1125
+Epoch: 163, LR: 0.00097, Loss: 0.1093, Val: 0.1729, Test: 0.1125
+Epoch: 164, LR: 0.00096, Loss: 0.1057, Val: 0.1303, Test: 0.1125
+Epoch: 165, LR: 0.00096, Loss: 0.0988, Val: 0.1474, Test: 0.1125
+Epoch: 166, LR: 0.00096, Loss: 0.0967, Val: 0.1203, Test: 0.1125
+Epoch: 167, LR: 0.00096, Loss: 0.1020, Val: 0.1212, Test: 0.1125
+Epoch: 168, LR: 0.00096, Loss: 0.1001, Val: 0.1068, Test: 0.1039
+Epoch: 169, LR: 0.00096, Loss: 0.0931, Val: 0.1315, Test: 0.1039
+Epoch: 170, LR: 0.00096, Loss: 0.0989, Val: 0.1228, Test: 0.1039
+Epoch: 171, LR: 0.00096, Loss: 0.0942, Val: 0.1307, Test: 0.1039
+Epoch: 172, LR: 0.00096, Loss: 0.0973, Val: 0.1342, Test: 0.1039
+Epoch: 173, LR: 0.00096, Loss: 0.0956, Val: 0.1375, Test: 0.1039
+Epoch: 174, LR: 0.00096, Loss: 0.0925, Val: 0.1348, Test: 0.1039
+Epoch: 175, LR: 0.00096, Loss: 0.0961, Val: 0.1331, Test: 0.1039
+Epoch: 176, LR: 0.00096, Loss: 0.0973, Val: 0.1061, Test: 0.1039
+Epoch: 177, LR: 0.00096, Loss: 0.0900, Val: 0.1863, Test: 0.1039
+Epoch: 178, LR: 0.00096, Loss: 0.0896, Val: 0.1230, Test: 0.1039
+Epoch: 179, LR: 0.00096, Loss: 0.0929, Val: 0.1202, Test: 0.1039
+Epoch: 180, LR: 0.00095, Loss: 0.0932, Val: 0.1330, Test: 0.1039
+Epoch: 181, LR: 0.00095, Loss: 0.0904, Val: 0.1083, Test: 0.1039
+Epoch: 182, LR: 0.00095, Loss: 0.0888, Val: 0.1187, Test: 0.1039
+Epoch: 183, LR: 0.00095, Loss: 0.0939, Val: 0.1011, Test: 0.0985
+Epoch: 184, LR: 0.00095, Loss: 0.0905, Val: 0.1135, Test: 0.0985
+Epoch: 185, LR: 0.00095, Loss: 0.0894, Val: 0.1146, Test: 0.0985
+Epoch: 186, LR: 0.00095, Loss: 0.0901, Val: 0.1144, Test: 0.0985
+Epoch: 187, LR: 0.00095, Loss: 0.0883, Val: 0.1237, Test: 0.0985
+Epoch: 188, LR: 0.00095, Loss: 0.0912, Val: 0.1078, Test: 0.0985
+Epoch: 189, LR: 0.00095, Loss: 0.0815, Val: 0.1125, Test: 0.0985
+Epoch: 190, LR: 0.00095, Loss: 0.0915, Val: 0.1407, Test: 0.0985
+Epoch: 191, LR: 0.00095, Loss: 0.1025, Val: 0.1199, Test: 0.0985
+Epoch: 192, LR: 0.00095, Loss: 0.0889, Val: 0.1353, Test: 0.0985
+Epoch: 193, LR: 0.00095, Loss: 0.0878, Val: 0.1341, Test: 0.0985
+Epoch: 194, LR: 0.00094, Loss: 0.0878, Val: 0.1143, Test: 0.0985
+Epoch: 195, LR: 0.00094, Loss: 0.0849, Val: 0.1213, Test: 0.0985
+Epoch: 196, LR: 0.00094, Loss: 0.0842, Val: 0.1127, Test: 0.0985
+Epoch: 197, LR: 0.00094, Loss: 0.0796, Val: 0.1172, Test: 0.0985
+Epoch: 198, LR: 0.00094, Loss: 0.0826, Val: 0.1166, Test: 0.0985
+Epoch: 199, LR: 0.00094, Loss: 0.0844, Val: 0.1257, Test: 0.0985
+Epoch: 200, LR: 0.00094, Loss: 0.0831, Val: 0.1267, Test: 0.0985
+Epoch: 201, LR: 0.00094, Loss: 0.0886, Val: 0.1170, Test: 0.0985
+Epoch: 202, LR: 0.00094, Loss: 0.0787, Val: 0.1356, Test: 0.0985
+Epoch: 203, LR: 0.00094, Loss: 0.0828, Val: 0.1150, Test: 0.0985
+Epoch: 204, LR: 0.00094, Loss: 0.0839, Val: 0.1326, Test: 0.0985
+Epoch: 205, LR: 0.00094, Loss: 0.0817, Val: 0.1190, Test: 0.0985
+Epoch: 206, LR: 0.00093, Loss: 0.0808, Val: 0.1130, Test: 0.0985
+Epoch: 207, LR: 0.00093, Loss: 0.0825, Val: 0.1013, Test: 0.0985
+Epoch: 208, LR: 0.00093, Loss: 0.0886, Val: 0.1058, Test: 0.0985
+Epoch: 209, LR: 0.00093, Loss: 0.0867, Val: 0.1162, Test: 0.0985
+Epoch: 210, LR: 0.00093, Loss: 0.0817, Val: 0.1035, Test: 0.0985
+Epoch: 211, LR: 0.00093, Loss: 0.0787, Val: 0.1170, Test: 0.0985
+Epoch: 212, LR: 0.00093, Loss: 0.0829, Val: 0.0955, Test: 0.0925
+Epoch: 213, LR: 0.00093, Loss: 0.0754, Val: 0.1159, Test: 0.0925
+Epoch: 214, LR: 0.00093, Loss: 0.0812, Val: 0.1016, Test: 0.0925
+Epoch: 215, LR: 0.00093, Loss: 0.0796, Val: 0.1103, Test: 0.0925
+Epoch: 216, LR: 0.00093, Loss: 0.0813, Val: 0.1128, Test: 0.0925
+Epoch: 217, LR: 0.00093, Loss: 0.0762, Val: 0.1351, Test: 0.0925
+Epoch: 218, LR: 0.00092, Loss: 0.0771, Val: 0.1294, Test: 0.0925
+Epoch: 219, LR: 0.00092, Loss: 0.0790, Val: 0.1010, Test: 0.0925
+Epoch: 220, LR: 0.00092, Loss: 0.0762, Val: 0.1074, Test: 0.0925
+Epoch: 221, LR: 0.00092, Loss: 0.0757, Val: 0.1063, Test: 0.0925
+Epoch: 222, LR: 0.00092, Loss: 0.0764, Val: 0.1092, Test: 0.0925
+Epoch: 223, LR: 0.00092, Loss: 0.0807, Val: 0.1200, Test: 0.0925
+Epoch: 224, LR: 0.00092, Loss: 0.0779, Val: 0.0964, Test: 0.0925
+Epoch: 225, LR: 0.00092, Loss: 0.0766, Val: 0.1086, Test: 0.0925
+Epoch: 226, LR: 0.00092, Loss: 0.0788, Val: 0.1084, Test: 0.0925
+Epoch: 227, LR: 0.00092, Loss: 0.0784, Val: 0.1063, Test: 0.0925
+Epoch: 228, LR: 0.00092, Loss: 0.0810, Val: 0.1209, Test: 0.0925
+Epoch: 229, LR: 0.00091, Loss: 0.0778, Val: 0.1518, Test: 0.0925
+Epoch: 230, LR: 0.00091, Loss: 0.0787, Val: 0.0968, Test: 0.0925
+Epoch: 231, LR: 0.00091, Loss: 0.0725, Val: 0.1074, Test: 0.0925
+Epoch: 232, LR: 0.00091, Loss: 0.0728, Val: 0.1181, Test: 0.0925
+Epoch: 233, LR: 0.00091, Loss: 0.0730, Val: 0.0947, Test: 0.0949
+Epoch: 234, LR: 0.00091, Loss: 0.0841, Val: 0.1061, Test: 0.0949
+Epoch: 235, LR: 0.00091, Loss: 0.0789, Val: 0.1071, Test: 0.0949
+Epoch: 236, LR: 0.00091, Loss: 0.0760, Val: 0.1055, Test: 0.0949
+Epoch: 237, LR: 0.00091, Loss: 0.0764, Val: 0.0990, Test: 0.0949
+Epoch: 238, LR: 0.00091, Loss: 0.0704, Val: 0.1038, Test: 0.0949
+Epoch: 239, LR: 0.00091, Loss: 0.0733, Val: 0.1023, Test: 0.0949
+Epoch: 240, LR: 0.00090, Loss: 0.0741, Val: 0.1083, Test: 0.0949
+Epoch: 241, LR: 0.00090, Loss: 0.0730, Val: 0.0967, Test: 0.0949
+Epoch: 242, LR: 0.00090, Loss: 0.0721, Val: 0.1080, Test: 0.0949
+Epoch: 243, LR: 0.00090, Loss: 0.0765, Val: 0.1109, Test: 0.0949
+Epoch: 244, LR: 0.00090, Loss: 0.1110, Val: 0.1107, Test: 0.0949
+Epoch: 245, LR: 0.00090, Loss: 0.0737, Val: 0.1106, Test: 0.0949
+Epoch: 246, LR: 0.00090, Loss: 0.0748, Val: 0.1255, Test: 0.0949
+Epoch: 247, LR: 0.00090, Loss: 0.0763, Val: 0.1035, Test: 0.0949
+Epoch: 248, LR: 0.00090, Loss: 0.0732, Val: 0.1006, Test: 0.0949
+Epoch: 249, LR: 0.00090, Loss: 0.0680, Val: 0.1200, Test: 0.0949
+Epoch: 250, LR: 0.00089, Loss: 0.0727, Val: 0.1104, Test: 0.0949
+Epoch: 251, LR: 0.00089, Loss: 0.0718, Val: 0.1188, Test: 0.0949
+Epoch: 252, LR: 0.00089, Loss: 0.0720, Val: 0.1023, Test: 0.0949
+Epoch: 253, LR: 0.00089, Loss: 0.0654, Val: 0.0988, Test: 0.0949
+Epoch: 254, LR: 0.00089, Loss: 0.0709, Val: 0.1339, Test: 0.0949
+Epoch: 255, LR: 0.00089, Loss: 0.0803, Val: 0.0969, Test: 0.0949
+Epoch: 256, LR: 0.00089, Loss: 0.0743, Val: 0.1252, Test: 0.0949
+Epoch: 257, LR: 0.00089, Loss: 0.0711, Val: 0.1022, Test: 0.0949
+Epoch: 258, LR: 0.00089, Loss: 0.0694, Val: 0.1092, Test: 0.0949
+Epoch: 259, LR: 0.00089, Loss: 0.0691, Val: 0.1123, Test: 0.0949
+Epoch: 260, LR: 0.00088, Loss: 0.0706, Val: 0.0914, Test: 0.0865
+Epoch: 261, LR: 0.00088, Loss: 0.0708, Val: 0.0996, Test: 0.0865
+Epoch: 262, LR: 0.00088, Loss: 0.0656, Val: 0.1018, Test: 0.0865
+Epoch: 263, LR: 0.00088, Loss: 0.0678, Val: 0.1010, Test: 0.0865
+Epoch: 264, LR: 0.00088, Loss: 0.0670, Val: 0.0958, Test: 0.0865
+Epoch: 265, LR: 0.00088, Loss: 0.0738, Val: 0.1048, Test: 0.0865
+Epoch: 266, LR: 0.00088, Loss: 0.0687, Val: 0.1128, Test: 0.0865
+Epoch: 267, LR: 0.00088, Loss: 0.0702, Val: 0.1035, Test: 0.0865
+Epoch: 268, LR: 0.00088, Loss: 0.0690, Val: 0.0933, Test: 0.0865
+Epoch: 269, LR: 0.00087, Loss: 0.0675, Val: 0.1018, Test: 0.0865
+Epoch: 270, LR: 0.00087, Loss: 0.0724, Val: 0.1008, Test: 0.0865
+Epoch: 271, LR: 0.00087, Loss: 0.0673, Val: 0.0943, Test: 0.0865
+Epoch: 272, LR: 0.00087, Loss: 0.0680, Val: 0.1147, Test: 0.0865
+Epoch: 273, LR: 0.00087, Loss: 0.0699, Val: 0.1055, Test: 0.0865
+Epoch: 274, LR: 0.00087, Loss: 0.0666, Val: 0.1012, Test: 0.0865
+Epoch: 275, LR: 0.00087, Loss: 0.0719, Val: 0.1130, Test: 0.0865
+Epoch: 276, LR: 0.00087, Loss: 0.0716, Val: 0.0974, Test: 0.0865
+Epoch: 277, LR: 0.00087, Loss: 0.0629, Val: 0.1036, Test: 0.0865
+Epoch: 278, LR: 0.00086, Loss: 0.0626, Val: 0.1070, Test: 0.0865
+Epoch: 279, LR: 0.00086, Loss: 0.0641, Val: 0.1040, Test: 0.0865
+Epoch: 280, LR: 0.00086, Loss: 0.0660, Val: 0.1053, Test: 0.0865
+Epoch: 281, LR: 0.00086, Loss: 0.0631, Val: 0.0995, Test: 0.0865
+Epoch: 282, LR: 0.00086, Loss: 0.0646, Val: 0.1194, Test: 0.0865
+Epoch: 283, LR: 0.00086, Loss: 0.0729, Val: 0.1053, Test: 0.0865
+Epoch: 284, LR: 0.00086, Loss: 0.0659, Val: 0.0978, Test: 0.0865
+Epoch: 285, LR: 0.00086, Loss: 0.0631, Val: 0.1114, Test: 0.0865
+Epoch: 286, LR: 0.00086, Loss: 0.0649, Val: 0.1061, Test: 0.0865
+Epoch: 287, LR: 0.00085, Loss: 0.0653, Val: 0.1012, Test: 0.0865
+Epoch: 288, LR: 0.00085, Loss: 0.0646, Val: 0.0905, Test: 0.0820
+Epoch: 289, LR: 0.00085, Loss: 0.0667, Val: 0.1038, Test: 0.0820
+Epoch: 290, LR: 0.00085, Loss: 0.0633, Val: 0.0902, Test: 0.0848
+Epoch: 291, LR: 0.00085, Loss: 0.0616, Val: 0.1007, Test: 0.0848
+Epoch: 292, LR: 0.00085, Loss: 0.0662, Val: 0.1176, Test: 0.0848
+Epoch: 293, LR: 0.00085, Loss: 0.0669, Val: 0.1133, Test: 0.0848
+Epoch: 294, LR: 0.00085, Loss: 0.0596, Val: 0.0945, Test: 0.0848
+Epoch: 295, LR: 0.00084, Loss: 0.0628, Val: 0.0983, Test: 0.0848
+Epoch: 296, LR: 0.00084, Loss: 0.0632, Val: 0.1197, Test: 0.0848
+Epoch: 297, LR: 0.00084, Loss: 0.0649, Val: 0.1105, Test: 0.0848
+Epoch: 298, LR: 0.00084, Loss: 0.0623, Val: 0.0971, Test: 0.0848
+Epoch: 299, LR: 0.00084, Loss: 0.0607, Val: 0.1060, Test: 0.0848
+Epoch: 300, LR: 0.00084, Loss: 0.0599, Val: 0.0962, Test: 0.0848
+Epoch: 301, LR: 0.00084, Loss: 0.0597, Val: 0.1059, Test: 0.0848
+Epoch: 302, LR: 0.00084, Loss: 0.0641, Val: 0.1055, Test: 0.0848
+Epoch: 303, LR: 0.00083, Loss: 0.0623, Val: 0.0917, Test: 0.0848
+Epoch: 304, LR: 0.00083, Loss: 0.0613, Val: 0.1102, Test: 0.0848
+Epoch: 305, LR: 0.00083, Loss: 0.0640, Val: 0.0932, Test: 0.0848
+Epoch: 306, LR: 0.00083, Loss: 0.0590, Val: 0.1157, Test: 0.0848
+Epoch: 307, LR: 0.00083, Loss: 0.0654, Val: 0.1210, Test: 0.0848
+Epoch: 308, LR: 0.00083, Loss: 0.0616, Val: 0.1200, Test: 0.0848
+Epoch: 309, LR: 0.00083, Loss: 0.0655, Val: 0.1042, Test: 0.0848
+Epoch: 310, LR: 0.00083, Loss: 0.0610, Val: 0.0992, Test: 0.0848
+Epoch: 311, LR: 0.00083, Loss: 0.0618, Val: 0.0980, Test: 0.0848
+Epoch: 312, LR: 0.00082, Loss: 0.0587, Val: 0.0926, Test: 0.0848
+Epoch: 313, LR: 0.00082, Loss: 0.0615, Val: 0.0981, Test: 0.0848
+Epoch: 314, LR: 0.00082, Loss: 0.0571, Val: 0.0924, Test: 0.0848
+Epoch: 315, LR: 0.00082, Loss: 0.0591, Val: 0.0953, Test: 0.0848
+Epoch: 316, LR: 0.00082, Loss: 0.0562, Val: 0.1000, Test: 0.0848
+Epoch: 317, LR: 0.00082, Loss: 0.0576, Val: 0.0975, Test: 0.0848
+Epoch: 318, LR: 0.00082, Loss: 0.0573, Val: 0.0904, Test: 0.0848
+Epoch: 319, LR: 0.00081, Loss: 0.0599, Val: 0.0984, Test: 0.0848
+Epoch: 320, LR: 0.00081, Loss: 0.0623, Val: 0.0856, Test: 0.0851
+Epoch: 321, LR: 0.00081, Loss: 0.0623, Val: 0.0978, Test: 0.0851
+Epoch: 322, LR: 0.00081, Loss: 0.0606, Val: 0.1084, Test: 0.0851
+Epoch: 323, LR: 0.00081, Loss: 0.0631, Val: 0.0999, Test: 0.0851
+Epoch: 324, LR: 0.00081, Loss: 0.0577, Val: 0.0901, Test: 0.0851
+Epoch: 325, LR: 0.00081, Loss: 0.0552, Val: 0.1024, Test: 0.0851
+Epoch: 326, LR: 0.00081, Loss: 0.0566, Val: 0.0929, Test: 0.0851
+Epoch: 327, LR: 0.00080, Loss: 0.0627, Val: 0.1099, Test: 0.0851
+Epoch: 328, LR: 0.00080, Loss: 0.0539, Val: 0.0919, Test: 0.0851
+Epoch: 329, LR: 0.00080, Loss: 0.0570, Val: 0.0929, Test: 0.0851
+Epoch: 330, LR: 0.00080, Loss: 0.0559, Val: 0.0956, Test: 0.0851
+Epoch: 331, LR: 0.00080, Loss: 0.0624, Val: 0.1035, Test: 0.0851
+Epoch: 332, LR: 0.00080, Loss: 0.0614, Val: 0.0935, Test: 0.0851
+Epoch: 333, LR: 0.00080, Loss: 0.0574, Val: 0.1045, Test: 0.0851
+Epoch: 334, LR: 0.00080, Loss: 0.0564, Val: 0.1076, Test: 0.0851
+Epoch: 335, LR: 0.00079, Loss: 0.0548, Val: 0.0995, Test: 0.0851
+Epoch: 336, LR: 0.00079, Loss: 0.0575, Val: 0.0961, Test: 0.0851
+Epoch: 337, LR: 0.00079, Loss: 0.0705, Val: 0.0908, Test: 0.0851
+Epoch: 338, LR: 0.00079, Loss: 0.0561, Val: 0.0954, Test: 0.0851
+Epoch: 339, LR: 0.00079, Loss: 0.0543, Val: 0.0917, Test: 0.0851
+Epoch: 340, LR: 0.00079, Loss: 0.0565, Val: 0.0954, Test: 0.0851
+Epoch: 341, LR: 0.00079, Loss: 0.0541, Val: 0.0944, Test: 0.0851
+Epoch: 342, LR: 0.00078, Loss: 0.0571, Val: 0.0993, Test: 0.0851
+Epoch: 343, LR: 0.00078, Loss: 0.0533, Val: 0.1023, Test: 0.0851
+Epoch: 344, LR: 0.00078, Loss: 0.0551, Val: 0.1205, Test: 0.0851
+Epoch: 345, LR: 0.00078, Loss: 0.0572, Val: 0.1049, Test: 0.0851
+Epoch: 346, LR: 0.00078, Loss: 0.0558, Val: 0.1117, Test: 0.0851
+Epoch: 347, LR: 0.00078, Loss: 0.0566, Val: 0.0912, Test: 0.0851
+Epoch: 348, LR: 0.00078, Loss: 0.0557, Val: 0.0901, Test: 0.0851
+Epoch: 349, LR: 0.00077, Loss: 0.0755, Val: 0.1134, Test: 0.0851
+Epoch: 350, LR: 0.00077, Loss: 0.0683, Val: 0.0963, Test: 0.0851
+Epoch: 351, LR: 0.00077, Loss: 0.0597, Val: 0.1091, Test: 0.0851
+Epoch: 352, LR: 0.00077, Loss: 0.0600, Val: 0.0943, Test: 0.0851
+Epoch: 353, LR: 0.00077, Loss: 0.0568, Val: 0.1034, Test: 0.0851
+Epoch: 354, LR: 0.00077, Loss: 0.0529, Val: 0.0888, Test: 0.0851
+Epoch: 355, LR: 0.00077, Loss: 0.0563, Val: 0.0967, Test: 0.0851
+Epoch: 356, LR: 0.00077, Loss: 0.0569, Val: 0.0912, Test: 0.0851
+Epoch: 357, LR: 0.00076, Loss: 0.0528, Val: 0.0914, Test: 0.0851
+Epoch: 358, LR: 0.00076, Loss: 0.0553, Val: 0.1052, Test: 0.0851
+Epoch: 359, LR: 0.00076, Loss: 0.0523, Val: 0.0954, Test: 0.0851
+Epoch: 360, LR: 0.00076, Loss: 0.0549, Val: 0.0893, Test: 0.0851
+Epoch: 361, LR: 0.00076, Loss: 0.0532, Val: 0.1039, Test: 0.0851
+Epoch: 362, LR: 0.00076, Loss: 0.0547, Val: 0.0947, Test: 0.0851
+Epoch: 363, LR: 0.00076, Loss: 0.0526, Val: 0.0894, Test: 0.0851
+Epoch: 364, LR: 0.00075, Loss: 0.0528, Val: 0.0924, Test: 0.0851
+Epoch: 365, LR: 0.00075, Loss: 0.0510, Val: 0.0892, Test: 0.0851
+Epoch: 366, LR: 0.00075, Loss: 0.0536, Val: 0.0886, Test: 0.0851
+Epoch: 367, LR: 0.00075, Loss: 0.0534, Val: 0.0959, Test: 0.0851
+Epoch: 368, LR: 0.00075, Loss: 0.0525, Val: 0.0912, Test: 0.0851
+Epoch: 369, LR: 0.00075, Loss: 0.0532, Val: 0.0976, Test: 0.0851
+Epoch: 370, LR: 0.00075, Loss: 0.0512, Val: 0.0933, Test: 0.0851
+Epoch: 371, LR: 0.00074, Loss: 0.0542, Val: 0.0914, Test: 0.0851
+Epoch: 372, LR: 0.00074, Loss: 0.0536, Val: 0.0910, Test: 0.0851
+Epoch: 373, LR: 0.00074, Loss: 0.0500, Val: 0.0886, Test: 0.0851
+Epoch: 374, LR: 0.00074, Loss: 0.0508, Val: 0.0877, Test: 0.0851
+Epoch: 375, LR: 0.00074, Loss: 0.0492, Val: 0.0946, Test: 0.0851
+Epoch: 376, LR: 0.00074, Loss: 0.0506, Val: 0.0932, Test: 0.0851
+Epoch: 377, LR: 0.00074, Loss: 0.0517, Val: 0.0862, Test: 0.0851
+Epoch: 378, LR: 0.00073, Loss: 0.0521, Val: 0.0929, Test: 0.0851
+Epoch: 379, LR: 0.00073, Loss: 0.0558, Val: 0.0945, Test: 0.0851
+Epoch: 380, LR: 0.00073, Loss: 0.0500, Val: 0.0870, Test: 0.0851
+Epoch: 381, LR: 0.00073, Loss: 0.0526, Val: 0.0942, Test: 0.0851
+Epoch: 382, LR: 0.00073, Loss: 0.0513, Val: 0.0928, Test: 0.0851
+Epoch: 383, LR: 0.00073, Loss: 0.0534, Val: 0.1125, Test: 0.0851
+Epoch: 384, LR: 0.00072, Loss: 0.0528, Val: 0.0910, Test: 0.0851
+Epoch: 385, LR: 0.00072, Loss: 0.0511, Val: 0.0891, Test: 0.0851
+Epoch: 386, LR: 0.00072, Loss: 0.0489, Val: 0.0991, Test: 0.0851
+Epoch: 387, LR: 0.00072, Loss: 0.0512, Val: 0.1013, Test: 0.0851
+Epoch: 388, LR: 0.00072, Loss: 0.0550, Val: 0.0902, Test: 0.0851
+Epoch: 389, LR: 0.00072, Loss: 0.0475, Val: 0.0896, Test: 0.0851
+Epoch: 390, LR: 0.00072, Loss: 0.0496, Val: 0.0855, Test: 0.0830
+Epoch: 391, LR: 0.00071, Loss: 0.0484, Val: 0.0878, Test: 0.0830
+Epoch: 392, LR: 0.00071, Loss: 0.0499, Val: 0.0858, Test: 0.0830
+Epoch: 393, LR: 0.00071, Loss: 0.0520, Val: 0.0903, Test: 0.0830
+Epoch: 394, LR: 0.00071, Loss: 0.0502, Val: 0.0912, Test: 0.0830
+Epoch: 395, LR: 0.00071, Loss: 0.0551, Val: 0.0879, Test: 0.0830
+Epoch: 396, LR: 0.00071, Loss: 0.0508, Val: 0.0907, Test: 0.0830
+Epoch: 397, LR: 0.00071, Loss: 0.0480, Val: 0.0908, Test: 0.0830
+Epoch: 398, LR: 0.00070, Loss: 0.0507, Val: 0.0926, Test: 0.0830
+Epoch: 399, LR: 0.00070, Loss: 0.0473, Val: 0.0864, Test: 0.0830
+Epoch: 400, LR: 0.00070, Loss: 0.0484, Val: 0.0922, Test: 0.0830
+Epoch: 401, LR: 0.00070, Loss: 0.0526, Val: 0.0947, Test: 0.0830
+Epoch: 402, LR: 0.00070, Loss: 0.0490, Val: 0.0890, Test: 0.0830
+Epoch: 403, LR: 0.00070, Loss: 0.0501, Val: 0.0944, Test: 0.0830
+Epoch: 404, LR: 0.00069, Loss: 0.0463, Val: 0.0959, Test: 0.0830
+Epoch: 405, LR: 0.00069, Loss: 0.0501, Val: 0.1083, Test: 0.0830
+Epoch: 406, LR: 0.00069, Loss: 0.0490, Val: 0.0878, Test: 0.0830
+Epoch: 407, LR: 0.00069, Loss: 0.0499, Val: 0.0892, Test: 0.0830
+Epoch: 408, LR: 0.00069, Loss: 0.0491, Val: 0.0864, Test: 0.0830
+Epoch: 409, LR: 0.00069, Loss: 0.0499, Val: 0.0851, Test: 0.0809
+Epoch: 410, LR: 0.00069, Loss: 0.0452, Val: 0.1131, Test: 0.0809
+Epoch: 411, LR: 0.00068, Loss: 0.0524, Val: 0.0962, Test: 0.0809
+Epoch: 412, LR: 0.00068, Loss: 0.0477, Val: 0.0899, Test: 0.0809
+Epoch: 413, LR: 0.00068, Loss: 0.0479, Val: 0.0876, Test: 0.0809
+Epoch: 414, LR: 0.00068, Loss: 0.0468, Val: 0.0880, Test: 0.0809
+Epoch: 415, LR: 0.00068, Loss: 0.0495, Val: 0.0951, Test: 0.0809
+Epoch: 416, LR: 0.00068, Loss: 0.0491, Val: 0.0960, Test: 0.0809
+Epoch: 417, LR: 0.00067, Loss: 0.0466, Val: 0.0843, Test: 0.0738
+Epoch: 418, LR: 0.00067, Loss: 0.0453, Val: 0.0909, Test: 0.0738
+Epoch: 419, LR: 0.00067, Loss: 0.0479, Val: 0.0947, Test: 0.0738
+Epoch: 420, LR: 0.00067, Loss: 0.0499, Val: 0.0945, Test: 0.0738
+Epoch: 421, LR: 0.00067, Loss: 0.0482, Val: 0.0907, Test: 0.0738
+Epoch: 422, LR: 0.00067, Loss: 0.0463, Val: 0.0914, Test: 0.0738
+Epoch: 423, LR: 0.00067, Loss: 0.0464, Val: 0.0969, Test: 0.0738
+Epoch: 424, LR: 0.00066, Loss: 0.0453, Val: 0.0922, Test: 0.0738
+Epoch: 425, LR: 0.00066, Loss: 0.0479, Val: 0.0882, Test: 0.0738
+Epoch: 426, LR: 0.00066, Loss: 0.0456, Val: 0.0875, Test: 0.0738
+Epoch: 427, LR: 0.00066, Loss: 0.0458, Val: 0.0907, Test: 0.0738
+Epoch: 428, LR: 0.00066, Loss: 0.0478, Val: 0.0994, Test: 0.0738
+Epoch: 429, LR: 0.00066, Loss: 0.0476, Val: 0.0898, Test: 0.0738
+Epoch: 430, LR: 0.00065, Loss: 0.0467, Val: 0.0868, Test: 0.0738
+Epoch: 431, LR: 0.00065, Loss: 0.0459, Val: 0.0942, Test: 0.0738
+Epoch: 432, LR: 0.00065, Loss: 0.0442, Val: 0.0869, Test: 0.0738
+Epoch: 433, LR: 0.00065, Loss: 0.0438, Val: 0.0946, Test: 0.0738
+Epoch: 434, LR: 0.00065, Loss: 0.0460, Val: 0.0893, Test: 0.0738
+Epoch: 435, LR: 0.00065, Loss: 0.0463, Val: 0.0882, Test: 0.0738
+Epoch: 436, LR: 0.00065, Loss: 0.0471, Val: 0.0912, Test: 0.0738
+Epoch: 437, LR: 0.00064, Loss: 0.0477, Val: 0.0848, Test: 0.0738
+Epoch: 438, LR: 0.00064, Loss: 0.0435, Val: 0.0980, Test: 0.0738
+Epoch: 439, LR: 0.00064, Loss: 0.0462, Val: 0.0873, Test: 0.0738
+Epoch: 440, LR: 0.00064, Loss: 0.0428, Val: 0.0852, Test: 0.0738
+Epoch: 441, LR: 0.00064, Loss: 0.0494, Val: 0.0860, Test: 0.0738
+Epoch: 442, LR: 0.00064, Loss: 0.0473, Val: 0.0831, Test: 0.0790
+Epoch: 443, LR: 0.00063, Loss: 0.0460, Val: 0.0851, Test: 0.0790
+Epoch: 444, LR: 0.00063, Loss: 0.0473, Val: 0.0927, Test: 0.0790
+Epoch: 445, LR: 0.00063, Loss: 0.0424, Val: 0.0968, Test: 0.0790
+Epoch: 446, LR: 0.00063, Loss: 0.0455, Val: 0.0884, Test: 0.0790
+Epoch: 447, LR: 0.00063, Loss: 0.0457, Val: 0.0843, Test: 0.0790
+Epoch: 448, LR: 0.00063, Loss: 0.0460, Val: 0.0825, Test: 0.0770
+Epoch: 449, LR: 0.00062, Loss: 0.0461, Val: 0.0899, Test: 0.0770
+Epoch: 450, LR: 0.00062, Loss: 0.0430, Val: 0.0857, Test: 0.0770
+Epoch: 451, LR: 0.00062, Loss: 0.0439, Val: 0.1026, Test: 0.0770
+Epoch: 452, LR: 0.00062, Loss: 0.0446, Val: 0.0867, Test: 0.0770
+Epoch: 453, LR: 0.00062, Loss: 0.0435, Val: 0.0877, Test: 0.0770
+Epoch: 454, LR: 0.00062, Loss: 0.0449, Val: 0.0941, Test: 0.0770
+Epoch: 455, LR: 0.00061, Loss: 0.0434, Val: 0.0935, Test: 0.0770
+Epoch: 456, LR: 0.00061, Loss: 0.0453, Val: 0.0871, Test: 0.0770
+Epoch: 457, LR: 0.00061, Loss: 0.0436, Val: 0.0828, Test: 0.0770
+Epoch: 458, LR: 0.00061, Loss: 0.0447, Val: 0.0913, Test: 0.0770
+Epoch: 459, LR: 0.00061, Loss: 0.0478, Val: 0.0843, Test: 0.0770
+Epoch: 460, LR: 0.00061, Loss: 0.0452, Val: 0.0854, Test: 0.0770
+Epoch: 461, LR: 0.00061, Loss: 0.0454, Val: 0.0865, Test: 0.0770
+Epoch: 462, LR: 0.00060, Loss: 0.0443, Val: 0.0911, Test: 0.0770
+Epoch: 463, LR: 0.00060, Loss: 0.0430, Val: 0.0884, Test: 0.0770
+Epoch: 464, LR: 0.00060, Loss: 0.0423, Val: 0.0873, Test: 0.0770
+Epoch: 465, LR: 0.00060, Loss: 0.0412, Val: 0.0885, Test: 0.0770
+Epoch: 466, LR: 0.00060, Loss: 0.0425, Val: 0.0884, Test: 0.0770
+Epoch: 467, LR: 0.00060, Loss: 0.0413, Val: 0.0885, Test: 0.0770
+Epoch: 468, LR: 0.00059, Loss: 0.0404, Val: 0.0937, Test: 0.0770
+Epoch: 469, LR: 0.00059, Loss: 0.0445, Val: 0.0904, Test: 0.0770
+Epoch: 470, LR: 0.00059, Loss: 0.0440, Val: 0.1027, Test: 0.0770
+Epoch: 471, LR: 0.00059, Loss: 0.0416, Val: 0.0884, Test: 0.0770
+Epoch: 472, LR: 0.00059, Loss: 0.0448, Val: 0.0943, Test: 0.0770
+Epoch: 473, LR: 0.00059, Loss: 0.0426, Val: 0.0861, Test: 0.0770
+Epoch: 474, LR: 0.00058, Loss: 0.0417, Val: 0.0927, Test: 0.0770
+Epoch: 475, LR: 0.00058, Loss: 0.0443, Val: 0.0937, Test: 0.0770
+Epoch: 476, LR: 0.00058, Loss: 0.0416, Val: 0.0898, Test: 0.0770
+Epoch: 477, LR: 0.00058, Loss: 0.0472, Val: 0.0916, Test: 0.0770
+Epoch: 478, LR: 0.00058, Loss: 0.0421, Val: 0.0860, Test: 0.0770
+Epoch: 479, LR: 0.00058, Loss: 0.0429, Val: 0.0813, Test: 0.0759
+Epoch: 480, LR: 0.00057, Loss: 0.0406, Val: 0.0850, Test: 0.0759
+Epoch: 481, LR: 0.00057, Loss: 0.0412, Val: 0.0874, Test: 0.0759
+Epoch: 482, LR: 0.00057, Loss: 0.0403, Val: 0.0875, Test: 0.0759
+Epoch: 483, LR: 0.00057, Loss: 0.0398, Val: 0.0880, Test: 0.0759
+Epoch: 484, LR: 0.00057, Loss: 0.0434, Val: 0.0915, Test: 0.0759
+Epoch: 485, LR: 0.00057, Loss: 0.0425, Val: 0.1057, Test: 0.0759
+Epoch: 486, LR: 0.00056, Loss: 0.0412, Val: 0.0890, Test: 0.0759
+Epoch: 487, LR: 0.00056, Loss: 0.0416, Val: 0.1076, Test: 0.0759
+Epoch: 488, LR: 0.00056, Loss: 0.0436, Val: 0.0889, Test: 0.0759
+Epoch: 489, LR: 0.00056, Loss: 0.0416, Val: 0.0900, Test: 0.0759
+Epoch: 490, LR: 0.00056, Loss: 0.0427, Val: 0.0859, Test: 0.0759
+Epoch: 491, LR: 0.00056, Loss: 0.0404, Val: 0.0893, Test: 0.0759
+Epoch: 492, LR: 0.00055, Loss: 0.0419, Val: 0.0839, Test: 0.0759
+Epoch: 493, LR: 0.00055, Loss: 0.0422, Val: 0.0918, Test: 0.0759
+Epoch: 494, LR: 0.00055, Loss: 0.0420, Val: 0.0895, Test: 0.0759
+Epoch: 495, LR: 0.00055, Loss: 0.0385, Val: 0.0870, Test: 0.0759
+Epoch: 496, LR: 0.00055, Loss: 0.0410, Val: 0.0988, Test: 0.0759
+Epoch: 497, LR: 0.00055, Loss: 0.0413, Val: 0.0899, Test: 0.0759
+Epoch: 498, LR: 0.00054, Loss: 0.0392, Val: 0.0860, Test: 0.0759
+Epoch: 499, LR: 0.00054, Loss: 0.0415, Val: 0.0972, Test: 0.0759
+Epoch: 500, LR: 0.00054, Loss: 0.0435, Val: 0.0924, Test: 0.0759
+Epoch: 501, LR: 0.00054, Loss: 0.0404, Val: 0.0851, Test: 0.0759
+Epoch: 502, LR: 0.00054, Loss: 0.0409, Val: 0.0887, Test: 0.0759
+Epoch: 503, LR: 0.00054, Loss: 0.0400, Val: 0.0877, Test: 0.0759
+Epoch: 504, LR: 0.00053, Loss: 0.0403, Val: 0.0867, Test: 0.0759
+Epoch: 505, LR: 0.00053, Loss: 0.0401, Val: 0.0861, Test: 0.0759
+Epoch: 506, LR: 0.00053, Loss: 0.0399, Val: 0.0878, Test: 0.0759
+Epoch: 507, LR: 0.00053, Loss: 0.0387, Val: 0.0847, Test: 0.0759
+Epoch: 508, LR: 0.00053, Loss: 0.0388, Val: 0.0868, Test: 0.0759
+Epoch: 509, LR: 0.00053, Loss: 0.0390, Val: 0.0873, Test: 0.0759
+Epoch: 510, LR: 0.00052, Loss: 0.0426, Val: 0.0849, Test: 0.0759
+Epoch: 511, LR: 0.00052, Loss: 0.0408, Val: 0.0805, Test: 0.0725
+Epoch: 512, LR: 0.00052, Loss: 0.0389, Val: 0.0876, Test: 0.0725
+Epoch: 513, LR: 0.00052, Loss: 0.0440, Val: 0.0863, Test: 0.0725
+Epoch: 514, LR: 0.00052, Loss: 0.0401, Val: 0.0860, Test: 0.0725
+Epoch: 515, LR: 0.00052, Loss: 0.0403, Val: 0.0849, Test: 0.0725
+Epoch: 516, LR: 0.00051, Loss: 0.0395, Val: 0.0957, Test: 0.0725
+Epoch: 517, LR: 0.00051, Loss: 0.0396, Val: 0.0934, Test: 0.0725
+Epoch: 518, LR: 0.00051, Loss: 0.0386, Val: 0.0863, Test: 0.0725
+Epoch: 519, LR: 0.00051, Loss: 0.0389, Val: 0.0887, Test: 0.0725
+Epoch: 520, LR: 0.00051, Loss: 0.0413, Val: 0.0881, Test: 0.0725
+Epoch: 521, LR: 0.00051, Loss: 0.0410, Val: 0.0953, Test: 0.0725
+Epoch: 522, LR: 0.00050, Loss: 0.0379, Val: 0.0870, Test: 0.0725
+Epoch: 523, LR: 0.00050, Loss: 0.0391, Val: 0.0840, Test: 0.0725
+Epoch: 524, LR: 0.00050, Loss: 0.0400, Val: 0.0847, Test: 0.0725
+Epoch: 525, LR: 0.00050, Loss: 0.0362, Val: 0.0825, Test: 0.0725
+Epoch: 526, LR: 0.00050, Loss: 0.0383, Val: 0.0860, Test: 0.0725
+Epoch: 527, LR: 0.00050, Loss: 0.0397, Val: 0.0845, Test: 0.0725
+Epoch: 528, LR: 0.00050, Loss: 0.0380, Val: 0.0884, Test: 0.0725
+Epoch: 529, LR: 0.00049, Loss: 0.0378, Val: 0.0870, Test: 0.0725
+Epoch: 530, LR: 0.00049, Loss: 0.0378, Val: 0.0895, Test: 0.0725
+Epoch: 531, LR: 0.00049, Loss: 0.0393, Val: 0.0857, Test: 0.0725
+Epoch: 532, LR: 0.00049, Loss: 0.0389, Val: 0.0887, Test: 0.0725
+Epoch: 533, LR: 0.00049, Loss: 0.0383, Val: 0.0827, Test: 0.0725
+Epoch: 534, LR: 0.00049, Loss: 0.0368, Val: 0.0891, Test: 0.0725
+Epoch: 535, LR: 0.00048, Loss: 0.0385, Val: 0.0856, Test: 0.0725
+Epoch: 536, LR: 0.00048, Loss: 0.0386, Val: 0.0882, Test: 0.0725
+Epoch: 537, LR: 0.00048, Loss: 0.0367, Val: 0.0834, Test: 0.0725
+Epoch: 538, LR: 0.00048, Loss: 0.0385, Val: 0.0817, Test: 0.0725
+Epoch: 539, LR: 0.00048, Loss: 0.0362, Val: 0.0835, Test: 0.0725
+Epoch: 540, LR: 0.00048, Loss: 0.0380, Val: 0.0851, Test: 0.0725
+Epoch: 541, LR: 0.00047, Loss: 0.0383, Val: 0.0823, Test: 0.0725
+Epoch: 542, LR: 0.00047, Loss: 0.0356, Val: 0.0862, Test: 0.0725
+Epoch: 543, LR: 0.00047, Loss: 0.0405, Val: 0.0899, Test: 0.0725
+Epoch: 544, LR: 0.00047, Loss: 0.0371, Val: 0.0835, Test: 0.0725
+Epoch: 545, LR: 0.00047, Loss: 0.0382, Val: 0.0830, Test: 0.0725
+Epoch: 546, LR: 0.00047, Loss: 0.0372, Val: 0.0838, Test: 0.0725
+Epoch: 547, LR: 0.00046, Loss: 0.0368, Val: 0.0885, Test: 0.0725
+Epoch: 548, LR: 0.00046, Loss: 0.0388, Val: 0.0928, Test: 0.0725
+Epoch: 549, LR: 0.00046, Loss: 0.0388, Val: 0.0908, Test: 0.0725
+Epoch: 550, LR: 0.00046, Loss: 0.0365, Val: 0.0832, Test: 0.0725
+Epoch: 551, LR: 0.00046, Loss: 0.0351, Val: 0.0857, Test: 0.0725
+Epoch: 552, LR: 0.00046, Loss: 0.0355, Val: 0.0869, Test: 0.0725
+Epoch: 553, LR: 0.00045, Loss: 0.0372, Val: 0.0816, Test: 0.0725
+Epoch: 554, LR: 0.00045, Loss: 0.0373, Val: 0.0865, Test: 0.0725
+Epoch: 555, LR: 0.00045, Loss: 0.0371, Val: 0.0850, Test: 0.0725
+Epoch: 556, LR: 0.00045, Loss: 0.0390, Val: 0.0881, Test: 0.0725
+Epoch: 557, LR: 0.00045, Loss: 0.0356, Val: 0.0834, Test: 0.0725
+Epoch: 558, LR: 0.00045, Loss: 0.0360, Val: 0.0801, Test: 0.0726
+Epoch: 559, LR: 0.00044, Loss: 0.0365, Val: 0.0788, Test: 0.0714
+Epoch: 560, LR: 0.00044, Loss: 0.0355, Val: 0.0808, Test: 0.0714
+Epoch: 561, LR: 0.00044, Loss: 0.0353, Val: 0.0880, Test: 0.0714
+Epoch: 562, LR: 0.00044, Loss: 0.0368, Val: 0.0814, Test: 0.0714
+Epoch: 563, LR: 0.00044, Loss: 0.0352, Val: 0.0820, Test: 0.0714
+Epoch: 564, LR: 0.00044, Loss: 0.0355, Val: 0.0804, Test: 0.0714
+Epoch: 565, LR: 0.00043, Loss: 0.0386, Val: 0.0838, Test: 0.0714
+Epoch: 566, LR: 0.00043, Loss: 0.0344, Val: 0.0839, Test: 0.0714
+Epoch: 567, LR: 0.00043, Loss: 0.0358, Val: 0.0832, Test: 0.0714
+Epoch: 568, LR: 0.00043, Loss: 0.0375, Val: 0.0933, Test: 0.0714
+Epoch: 569, LR: 0.00043, Loss: 0.0385, Val: 0.0872, Test: 0.0714
+Epoch: 570, LR: 0.00043, Loss: 0.0357, Val: 0.0872, Test: 0.0714
+Epoch: 571, LR: 0.00042, Loss: 0.0366, Val: 0.0821, Test: 0.0714
+Epoch: 572, LR: 0.00042, Loss: 0.0342, Val: 0.0800, Test: 0.0714
+Epoch: 573, LR: 0.00042, Loss: 0.0339, Val: 0.0901, Test: 0.0714
+Epoch: 574, LR: 0.00042, Loss: 0.0358, Val: 0.0851, Test: 0.0714
+Epoch: 575, LR: 0.00042, Loss: 0.0344, Val: 0.0875, Test: 0.0714
+Epoch: 576, LR: 0.00042, Loss: 0.0381, Val: 0.0853, Test: 0.0714
+Epoch: 577, LR: 0.00041, Loss: 0.0330, Val: 0.0822, Test: 0.0714
+Epoch: 578, LR: 0.00041, Loss: 0.0354, Val: 0.0841, Test: 0.0714
+Epoch: 579, LR: 0.00041, Loss: 0.0339, Val: 0.0876, Test: 0.0714
+Epoch: 580, LR: 0.00041, Loss: 0.0347, Val: 0.0918, Test: 0.0714
+Epoch: 581, LR: 0.00041, Loss: 0.0378, Val: 0.0820, Test: 0.0714
+Epoch: 582, LR: 0.00041, Loss: 0.0346, Val: 0.0818, Test: 0.0714
+Epoch: 583, LR: 0.00040, Loss: 0.0332, Val: 0.0862, Test: 0.0714
+Epoch: 584, LR: 0.00040, Loss: 0.0341, Val: 0.0911, Test: 0.0714
+Epoch: 585, LR: 0.00040, Loss: 0.0345, Val: 0.0864, Test: 0.0714
+Epoch: 586, LR: 0.00040, Loss: 0.0346, Val: 0.0825, Test: 0.0714
+Epoch: 587, LR: 0.00040, Loss: 0.0340, Val: 0.0823, Test: 0.0714
+Epoch: 588, LR: 0.00040, Loss: 0.0329, Val: 0.0839, Test: 0.0714
+Epoch: 589, LR: 0.00039, Loss: 0.0345, Val: 0.0881, Test: 0.0714
+Epoch: 590, LR: 0.00039, Loss: 0.0355, Val: 0.0815, Test: 0.0714
+Epoch: 591, LR: 0.00039, Loss: 0.0327, Val: 0.0880, Test: 0.0714
+Epoch: 592, LR: 0.00039, Loss: 0.0355, Val: 0.0867, Test: 0.0714
+Epoch: 593, LR: 0.00039, Loss: 0.0369, Val: 0.0824, Test: 0.0714
+Epoch: 594, LR: 0.00039, Loss: 0.0353, Val: 0.0872, Test: 0.0714
+Epoch: 595, LR: 0.00039, Loss: 0.0338, Val: 0.0859, Test: 0.0714
+Epoch: 596, LR: 0.00038, Loss: 0.0348, Val: 0.0916, Test: 0.0714
+Epoch: 597, LR: 0.00038, Loss: 0.0348, Val: 0.0910, Test: 0.0714
+Epoch: 598, LR: 0.00038, Loss: 0.0327, Val: 0.0840, Test: 0.0714
+Epoch: 599, LR: 0.00038, Loss: 0.0324, Val: 0.0812, Test: 0.0714
+Epoch: 600, LR: 0.00038, Loss: 0.0317, Val: 0.0814, Test: 0.0714
+Epoch: 601, LR: 0.00038, Loss: 0.0317, Val: 0.0804, Test: 0.0714
+Epoch: 602, LR: 0.00037, Loss: 0.0338, Val: 0.0860, Test: 0.0714
+Epoch: 603, LR: 0.00037, Loss: 0.0348, Val: 0.0834, Test: 0.0714
+Epoch: 604, LR: 0.00037, Loss: 0.0328, Val: 0.0843, Test: 0.0714
+Epoch: 605, LR: 0.00037, Loss: 0.0326, Val: 0.0838, Test: 0.0714
+Epoch: 606, LR: 0.00037, Loss: 0.0328, Val: 0.0817, Test: 0.0714
+Epoch: 607, LR: 0.00037, Loss: 0.0318, Val: 0.0820, Test: 0.0714
+Epoch: 608, LR: 0.00036, Loss: 0.0321, Val: 0.0864, Test: 0.0714
+Epoch: 609, LR: 0.00036, Loss: 0.0343, Val: 0.0935, Test: 0.0714
+Epoch: 610, LR: 0.00036, Loss: 0.0344, Val: 0.0842, Test: 0.0714
+Epoch: 611, LR: 0.00036, Loss: 0.0316, Val: 0.0833, Test: 0.0714
+Epoch: 612, LR: 0.00036, Loss: 0.0325, Val: 0.0842, Test: 0.0714
+Epoch: 613, LR: 0.00036, Loss: 0.0328, Val: 0.0811, Test: 0.0714
+Epoch: 614, LR: 0.00035, Loss: 0.0331, Val: 0.0810, Test: 0.0714
+Epoch: 615, LR: 0.00035, Loss: 0.0335, Val: 0.0806, Test: 0.0714
+Epoch: 616, LR: 0.00035, Loss: 0.0316, Val: 0.0812, Test: 0.0714
+Epoch: 617, LR: 0.00035, Loss: 0.0334, Val: 0.0829, Test: 0.0714
+Epoch: 618, LR: 0.00035, Loss: 0.0326, Val: 0.0829, Test: 0.0714
+Epoch: 619, LR: 0.00035, Loss: 0.0313, Val: 0.0818, Test: 0.0714
+Epoch: 620, LR: 0.00035, Loss: 0.0310, Val: 0.0870, Test: 0.0714
+Epoch: 621, LR: 0.00034, Loss: 0.0310, Val: 0.0797, Test: 0.0714
+Epoch: 622, LR: 0.00034, Loss: 0.0327, Val: 0.0813, Test: 0.0714
+Epoch: 623, LR: 0.00034, Loss: 0.0321, Val: 0.0821, Test: 0.0714
+Epoch: 624, LR: 0.00034, Loss: 0.0309, Val: 0.0809, Test: 0.0714
+Epoch: 625, LR: 0.00034, Loss: 0.0312, Val: 0.0804, Test: 0.0714
+Epoch: 626, LR: 0.00034, Loss: 0.0324, Val: 0.0812, Test: 0.0714
+Epoch: 627, LR: 0.00033, Loss: 0.0312, Val: 0.0816, Test: 0.0714
+Epoch: 628, LR: 0.00033, Loss: 0.0301, Val: 0.0804, Test: 0.0714
+Epoch: 629, LR: 0.00033, Loss: 0.0318, Val: 0.0815, Test: 0.0714
+Epoch: 630, LR: 0.00033, Loss: 0.0306, Val: 0.0810, Test: 0.0714
+Epoch: 631, LR: 0.00033, Loss: 0.0319, Val: 0.0839, Test: 0.0714
+Epoch: 632, LR: 0.00033, Loss: 0.0323, Val: 0.0859, Test: 0.0714
+Epoch: 633, LR: 0.00033, Loss: 0.0326, Val: 0.0833, Test: 0.0714
+Epoch: 634, LR: 0.00032, Loss: 0.0346, Val: 0.0866, Test: 0.0714
+Epoch: 635, LR: 0.00032, Loss: 0.0303, Val: 0.0844, Test: 0.0714
+Epoch: 636, LR: 0.00032, Loss: 0.0302, Val: 0.0828, Test: 0.0714
+Epoch: 637, LR: 0.00032, Loss: 0.0327, Val: 0.0787, Test: 0.0695
+Epoch: 638, LR: 0.00032, Loss: 0.0303, Val: 0.0802, Test: 0.0695
+Epoch: 639, LR: 0.00032, Loss: 0.0308, Val: 0.0823, Test: 0.0695
+Epoch: 640, LR: 0.00031, Loss: 0.0298, Val: 0.0834, Test: 0.0695
+Epoch: 641, LR: 0.00031, Loss: 0.0311, Val: 0.0870, Test: 0.0695
+Epoch: 642, LR: 0.00031, Loss: 0.0306, Val: 0.0832, Test: 0.0695
+Epoch: 643, LR: 0.00031, Loss: 0.0311, Val: 0.0884, Test: 0.0695
+Epoch: 644, LR: 0.00031, Loss: 0.0308, Val: 0.0824, Test: 0.0695
+Epoch: 645, LR: 0.00031, Loss: 0.0304, Val: 0.0922, Test: 0.0695
+Epoch: 646, LR: 0.00031, Loss: 0.0316, Val: 0.0840, Test: 0.0695
+Epoch: 647, LR: 0.00030, Loss: 0.0298, Val: 0.0843, Test: 0.0695
+Epoch: 648, LR: 0.00030, Loss: 0.0304, Val: 0.0820, Test: 0.0695
+Epoch: 649, LR: 0.00030, Loss: 0.0303, Val: 0.0820, Test: 0.0695
+Epoch: 650, LR: 0.00030, Loss: 0.0303, Val: 0.0822, Test: 0.0695
+Epoch: 651, LR: 0.00030, Loss: 0.0300, Val: 0.0849, Test: 0.0695
+Epoch: 652, LR: 0.00030, Loss: 0.0313, Val: 0.0873, Test: 0.0695
+Epoch: 653, LR: 0.00029, Loss: 0.0296, Val: 0.0842, Test: 0.0695
+Epoch: 654, LR: 0.00029, Loss: 0.0306, Val: 0.0797, Test: 0.0695
+Epoch: 655, LR: 0.00029, Loss: 0.0286, Val: 0.0821, Test: 0.0695
+Epoch: 656, LR: 0.00029, Loss: 0.0309, Val: 0.0797, Test: 0.0695
+Epoch: 657, LR: 0.00029, Loss: 0.0312, Val: 0.0826, Test: 0.0695
+Epoch: 658, LR: 0.00029, Loss: 0.0310, Val: 0.0869, Test: 0.0695
+Epoch: 659, LR: 0.00029, Loss: 0.0312, Val: 0.0835, Test: 0.0695
+Epoch: 660, LR: 0.00028, Loss: 0.0294, Val: 0.0826, Test: 0.0695
+Epoch: 661, LR: 0.00028, Loss: 0.0292, Val: 0.0829, Test: 0.0695
+Epoch: 662, LR: 0.00028, Loss: 0.0301, Val: 0.0859, Test: 0.0695
+Epoch: 663, LR: 0.00028, Loss: 0.0307, Val: 0.0858, Test: 0.0695
+Epoch: 664, LR: 0.00028, Loss: 0.0275, Val: 0.0837, Test: 0.0695
+Epoch: 665, LR: 0.00028, Loss: 0.0295, Val: 0.0816, Test: 0.0695
+Epoch: 666, LR: 0.00028, Loss: 0.0307, Val: 0.0821, Test: 0.0695
+Epoch: 667, LR: 0.00027, Loss: 0.0303, Val: 0.0847, Test: 0.0695
+Epoch: 668, LR: 0.00027, Loss: 0.0289, Val: 0.0813, Test: 0.0695
+Epoch: 669, LR: 0.00027, Loss: 0.0286, Val: 0.0837, Test: 0.0695
+Epoch: 670, LR: 0.00027, Loss: 0.0294, Val: 0.0810, Test: 0.0695
+Epoch: 671, LR: 0.00027, Loss: 0.0295, Val: 0.0784, Test: 0.0694
+Epoch: 672, LR: 0.00027, Loss: 0.0287, Val: 0.0820, Test: 0.0694
+Epoch: 673, LR: 0.00026, Loss: 0.0299, Val: 0.0843, Test: 0.0694
+Epoch: 674, LR: 0.00026, Loss: 0.0301, Val: 0.0796, Test: 0.0694
+Epoch: 675, LR: 0.00026, Loss: 0.0276, Val: 0.0822, Test: 0.0694
+Epoch: 676, LR: 0.00026, Loss: 0.0284, Val: 0.0807, Test: 0.0694
+Epoch: 677, LR: 0.00026, Loss: 0.0279, Val: 0.0807, Test: 0.0694
+Epoch: 678, LR: 0.00026, Loss: 0.0288, Val: 0.0817, Test: 0.0694
+Epoch: 679, LR: 0.00026, Loss: 0.0286, Val: 0.0849, Test: 0.0694
+Epoch: 680, LR: 0.00025, Loss: 0.0282, Val: 0.0821, Test: 0.0694
+Epoch: 681, LR: 0.00025, Loss: 0.0282, Val: 0.0821, Test: 0.0694
+Epoch: 682, LR: 0.00025, Loss: 0.0275, Val: 0.0820, Test: 0.0694
+Epoch: 683, LR: 0.00025, Loss: 0.0290, Val: 0.0829, Test: 0.0694
+Epoch: 684, LR: 0.00025, Loss: 0.0279, Val: 0.0802, Test: 0.0694
+Epoch: 685, LR: 0.00025, Loss: 0.0281, Val: 0.0811, Test: 0.0694
+Epoch: 686, LR: 0.00025, Loss: 0.0277, Val: 0.0806, Test: 0.0694
+Epoch: 687, LR: 0.00024, Loss: 0.0276, Val: 0.0845, Test: 0.0694
+Epoch: 688, LR: 0.00024, Loss: 0.0290, Val: 0.0831, Test: 0.0694
+Epoch: 689, LR: 0.00024, Loss: 0.0286, Val: 0.0810, Test: 0.0694
+Epoch: 690, LR: 0.00024, Loss: 0.0285, Val: 0.0817, Test: 0.0694
+Epoch: 691, LR: 0.00024, Loss: 0.0282, Val: 0.0811, Test: 0.0694
+Epoch: 692, LR: 0.00024, Loss: 0.0289, Val: 0.0845, Test: 0.0694
+Epoch: 693, LR: 0.00024, Loss: 0.0285, Val: 0.0811, Test: 0.0694
+Epoch: 694, LR: 0.00023, Loss: 0.0271, Val: 0.0823, Test: 0.0694
+Epoch: 695, LR: 0.00023, Loss: 0.0277, Val: 0.0801, Test: 0.0694
+Epoch: 696, LR: 0.00023, Loss: 0.0283, Val: 0.0791, Test: 0.0694
+Epoch: 697, LR: 0.00023, Loss: 0.0282, Val: 0.0835, Test: 0.0694
+Epoch: 698, LR: 0.00023, Loss: 0.0281, Val: 0.0825, Test: 0.0694
+Epoch: 699, LR: 0.00023, Loss: 0.0277, Val: 0.0804, Test: 0.0694
+Epoch: 700, LR: 0.00023, Loss: 0.0280, Val: 0.0802, Test: 0.0694
+Epoch: 701, LR: 0.00023, Loss: 0.0273, Val: 0.0810, Test: 0.0694
+Epoch: 702, LR: 0.00022, Loss: 0.0271, Val: 0.0830, Test: 0.0694
+Epoch: 703, LR: 0.00022, Loss: 0.0276, Val: 0.0827, Test: 0.0694
+Epoch: 704, LR: 0.00022, Loss: 0.0268, Val: 0.0834, Test: 0.0694
+Epoch: 705, LR: 0.00022, Loss: 0.0275, Val: 0.0835, Test: 0.0694
+Epoch: 706, LR: 0.00022, Loss: 0.0266, Val: 0.0835, Test: 0.0694
+Epoch: 707, LR: 0.00022, Loss: 0.0269, Val: 0.0821, Test: 0.0694
+Epoch: 708, LR: 0.00022, Loss: 0.0263, Val: 0.0820, Test: 0.0694
+Epoch: 709, LR: 0.00021, Loss: 0.0264, Val: 0.0796, Test: 0.0694
+Epoch: 710, LR: 0.00021, Loss: 0.0262, Val: 0.0817, Test: 0.0694
+Epoch: 711, LR: 0.00021, Loss: 0.0271, Val: 0.0807, Test: 0.0694
+Epoch: 712, LR: 0.00021, Loss: 0.0279, Val: 0.0798, Test: 0.0694
+Epoch: 713, LR: 0.00021, Loss: 0.0264, Val: 0.0813, Test: 0.0694
+Epoch: 714, LR: 0.00021, Loss: 0.0266, Val: 0.0833, Test: 0.0694
+Epoch: 715, LR: 0.00021, Loss: 0.0271, Val: 0.0829, Test: 0.0694
+Epoch: 716, LR: 0.00020, Loss: 0.0271, Val: 0.0792, Test: 0.0694
+Epoch: 717, LR: 0.00020, Loss: 0.0267, Val: 0.0838, Test: 0.0694
+Epoch: 718, LR: 0.00020, Loss: 0.0272, Val: 0.0836, Test: 0.0694
+Epoch: 719, LR: 0.00020, Loss: 0.0262, Val: 0.0823, Test: 0.0694
+Epoch: 720, LR: 0.00020, Loss: 0.0276, Val: 0.0811, Test: 0.0694
+Epoch: 721, LR: 0.00020, Loss: 0.0273, Val: 0.0821, Test: 0.0694
+Epoch: 722, LR: 0.00020, Loss: 0.0258, Val: 0.0814, Test: 0.0694
+Epoch: 723, LR: 0.00020, Loss: 0.0263, Val: 0.0810, Test: 0.0694
+Epoch: 724, LR: 0.00019, Loss: 0.0270, Val: 0.0852, Test: 0.0694
+Epoch: 725, LR: 0.00019, Loss: 0.0253, Val: 0.0809, Test: 0.0694
+Epoch: 726, LR: 0.00019, Loss: 0.0260, Val: 0.0818, Test: 0.0694
+Epoch: 727, LR: 0.00019, Loss: 0.0271, Val: 0.0819, Test: 0.0694
+Epoch: 728, LR: 0.00019, Loss: 0.0266, Val: 0.0822, Test: 0.0694
+Epoch: 729, LR: 0.00019, Loss: 0.0264, Val: 0.0844, Test: 0.0694
+Epoch: 730, LR: 0.00019, Loss: 0.0251, Val: 0.0817, Test: 0.0694
+Epoch: 731, LR: 0.00019, Loss: 0.0261, Val: 0.0824, Test: 0.0694
+Epoch: 732, LR: 0.00018, Loss: 0.0284, Val: 0.0819, Test: 0.0694
+Epoch: 733, LR: 0.00018, Loss: 0.0257, Val: 0.0828, Test: 0.0694
+Epoch: 734, LR: 0.00018, Loss: 0.0262, Val: 0.0841, Test: 0.0694
+Epoch: 735, LR: 0.00018, Loss: 0.0261, Val: 0.0820, Test: 0.0694
+Epoch: 736, LR: 0.00018, Loss: 0.0252, Val: 0.0828, Test: 0.0694
+Epoch: 737, LR: 0.00018, Loss: 0.0255, Val: 0.0809, Test: 0.0694
+Epoch: 738, LR: 0.00018, Loss: 0.0260, Val: 0.0785, Test: 0.0694
+Epoch: 739, LR: 0.00017, Loss: 0.0251, Val: 0.0801, Test: 0.0694
+Epoch: 740, LR: 0.00017, Loss: 0.0257, Val: 0.0843, Test: 0.0694
+Epoch: 741, LR: 0.00017, Loss: 0.0260, Val: 0.0830, Test: 0.0694
+Epoch: 742, LR: 0.00017, Loss: 0.0255, Val: 0.0839, Test: 0.0694
+Epoch: 743, LR: 0.00017, Loss: 0.0248, Val: 0.0821, Test: 0.0694
+Epoch: 744, LR: 0.00017, Loss: 0.0253, Val: 0.0809, Test: 0.0694
+Epoch: 745, LR: 0.00017, Loss: 0.0248, Val: 0.0813, Test: 0.0694
+Epoch: 746, LR: 0.00017, Loss: 0.0247, Val: 0.0832, Test: 0.0694
+Epoch: 747, LR: 0.00017, Loss: 0.0253, Val: 0.0813, Test: 0.0694
+Epoch: 748, LR: 0.00016, Loss: 0.0243, Val: 0.0835, Test: 0.0694
+Epoch: 749, LR: 0.00016, Loss: 0.0257, Val: 0.0821, Test: 0.0694
+Epoch: 750, LR: 0.00016, Loss: 0.0251, Val: 0.0798, Test: 0.0694
+Epoch: 751, LR: 0.00016, Loss: 0.0244, Val: 0.0815, Test: 0.0694
+Epoch: 752, LR: 0.00016, Loss: 0.0247, Val: 0.0822, Test: 0.0694
+Epoch: 753, LR: 0.00016, Loss: 0.0256, Val: 0.0818, Test: 0.0694
+Epoch: 754, LR: 0.00016, Loss: 0.0247, Val: 0.0827, Test: 0.0694
+Epoch: 755, LR: 0.00016, Loss: 0.0237, Val: 0.0824, Test: 0.0694
+Epoch: 756, LR: 0.00015, Loss: 0.0253, Val: 0.0840, Test: 0.0694
+Epoch: 757, LR: 0.00015, Loss: 0.0248, Val: 0.0830, Test: 0.0694
+Epoch: 758, LR: 0.00015, Loss: 0.0245, Val: 0.0841, Test: 0.0694
+Epoch: 759, LR: 0.00015, Loss: 0.0252, Val: 0.0808, Test: 0.0694
+Epoch: 760, LR: 0.00015, Loss: 0.0262, Val: 0.0815, Test: 0.0694
+Epoch: 761, LR: 0.00015, Loss: 0.0245, Val: 0.0816, Test: 0.0694
+Epoch: 762, LR: 0.00015, Loss: 0.0246, Val: 0.0835, Test: 0.0694
+Epoch: 763, LR: 0.00015, Loss: 0.0242, Val: 0.0819, Test: 0.0694
+Epoch: 764, LR: 0.00014, Loss: 0.0248, Val: 0.0820, Test: 0.0694
+Epoch: 765, LR: 0.00014, Loss: 0.0238, Val: 0.0810, Test: 0.0694
+Epoch: 766, LR: 0.00014, Loss: 0.0234, Val: 0.0833, Test: 0.0694
+Epoch: 767, LR: 0.00014, Loss: 0.0241, Val: 0.0823, Test: 0.0694
+Epoch: 768, LR: 0.00014, Loss: 0.0239, Val: 0.0815, Test: 0.0694
+Epoch: 769, LR: 0.00014, Loss: 0.0240, Val: 0.0840, Test: 0.0694
+Epoch: 770, LR: 0.00014, Loss: 0.0244, Val: 0.0812, Test: 0.0694
+Epoch: 771, LR: 0.00014, Loss: 0.0234, Val: 0.0818, Test: 0.0694
+Epoch: 772, LR: 0.00014, Loss: 0.0236, Val: 0.0804, Test: 0.0694
+Epoch: 773, LR: 0.00013, Loss: 0.0248, Val: 0.0815, Test: 0.0694
+Epoch: 774, LR: 0.00013, Loss: 0.0242, Val: 0.0817, Test: 0.0694
+Epoch: 775, LR: 0.00013, Loss: 0.0242, Val: 0.0807, Test: 0.0694
+Epoch: 776, LR: 0.00013, Loss: 0.0231, Val: 0.0822, Test: 0.0694
+Epoch: 777, LR: 0.00013, Loss: 0.0236, Val: 0.0827, Test: 0.0694
+Epoch: 778, LR: 0.00013, Loss: 0.0242, Val: 0.0810, Test: 0.0694
+Epoch: 779, LR: 0.00013, Loss: 0.0236, Val: 0.0830, Test: 0.0694
+Epoch: 780, LR: 0.00013, Loss: 0.0235, Val: 0.0839, Test: 0.0694
+Epoch: 781, LR: 0.00013, Loss: 0.0238, Val: 0.0816, Test: 0.0694
+Epoch: 782, LR: 0.00012, Loss: 0.0241, Val: 0.0857, Test: 0.0694
+Epoch: 783, LR: 0.00012, Loss: 0.0241, Val: 0.0825, Test: 0.0694
+Epoch: 784, LR: 0.00012, Loss: 0.0239, Val: 0.0836, Test: 0.0694
+Epoch: 785, LR: 0.00012, Loss: 0.0230, Val: 0.0835, Test: 0.0694
+Epoch: 786, LR: 0.00012, Loss: 0.0241, Val: 0.0839, Test: 0.0694
+Epoch: 787, LR: 0.00012, Loss: 0.0237, Val: 0.0834, Test: 0.0694
+Epoch: 788, LR: 0.00012, Loss: 0.0236, Val: 0.0818, Test: 0.0694
+Epoch: 789, LR: 0.00012, Loss: 0.0235, Val: 0.0828, Test: 0.0694
+Epoch: 790, LR: 0.00012, Loss: 0.0230, Val: 0.0835, Test: 0.0694
+Epoch: 791, LR: 0.00011, Loss: 0.0237, Val: 0.0824, Test: 0.0694
+Epoch: 792, LR: 0.00011, Loss: 0.0242, Val: 0.0843, Test: 0.0694
+Epoch: 793, LR: 0.00011, Loss: 0.0228, Val: 0.0840, Test: 0.0694
+Epoch: 794, LR: 0.00011, Loss: 0.0230, Val: 0.0834, Test: 0.0694
+Epoch: 795, LR: 0.00011, Loss: 0.0231, Val: 0.0844, Test: 0.0694
+Epoch: 796, LR: 0.00011, Loss: 0.0236, Val: 0.0818, Test: 0.0694
+Epoch: 797, LR: 0.00011, Loss: 0.0232, Val: 0.0832, Test: 0.0694
+Epoch: 798, LR: 0.00011, Loss: 0.0232, Val: 0.0820, Test: 0.0694
+Epoch: 799, LR: 0.00011, Loss: 0.0230, Val: 0.0813, Test: 0.0694
+Epoch: 800, LR: 0.00011, Loss: 0.0229, Val: 0.0811, Test: 0.0694
+Epoch: 801, LR: 0.00010, Loss: 0.0231, Val: 0.0825, Test: 0.0694
+Epoch: 802, LR: 0.00010, Loss: 0.0229, Val: 0.0805, Test: 0.0694
+Epoch: 803, LR: 0.00010, Loss: 0.0227, Val: 0.0814, Test: 0.0694
+Epoch: 804, LR: 0.00010, Loss: 0.0229, Val: 0.0803, Test: 0.0694
+Epoch: 805, LR: 0.00010, Loss: 0.0230, Val: 0.0812, Test: 0.0694
+Epoch: 806, LR: 0.00010, Loss: 0.0229, Val: 0.0806, Test: 0.0694
+Epoch: 807, LR: 0.00010, Loss: 0.0228, Val: 0.0810, Test: 0.0694
+Epoch: 808, LR: 0.00010, Loss: 0.0224, Val: 0.0813, Test: 0.0694
+Epoch: 809, LR: 0.00010, Loss: 0.0236, Val: 0.0796, Test: 0.0694
+Epoch: 810, LR: 0.00010, Loss: 0.0229, Val: 0.0832, Test: 0.0694
+Epoch: 811, LR: 0.00009, Loss: 0.0225, Val: 0.0828, Test: 0.0694
+Epoch: 812, LR: 0.00009, Loss: 0.0221, Val: 0.0821, Test: 0.0694
+Epoch: 813, LR: 0.00009, Loss: 0.0223, Val: 0.0828, Test: 0.0694
+Epoch: 814, LR: 0.00009, Loss: 0.0227, Val: 0.0830, Test: 0.0694
+Epoch: 815, LR: 0.00009, Loss: 0.0231, Val: 0.0821, Test: 0.0694
+Epoch: 816, LR: 0.00009, Loss: 0.0228, Val: 0.0837, Test: 0.0694
+Epoch: 817, LR: 0.00009, Loss: 0.0223, Val: 0.0813, Test: 0.0694
+Epoch: 818, LR: 0.00009, Loss: 0.0222, Val: 0.0808, Test: 0.0694
+Epoch: 819, LR: 0.00009, Loss: 0.0226, Val: 0.0811, Test: 0.0694
+Epoch: 820, LR: 0.00009, Loss: 0.0215, Val: 0.0802, Test: 0.0694
+Epoch: 821, LR: 0.00009, Loss: 0.0220, Val: 0.0818, Test: 0.0694
+Epoch: 822, LR: 0.00008, Loss: 0.0224, Val: 0.0797, Test: 0.0694
+Epoch: 823, LR: 0.00008, Loss: 0.0229, Val: 0.0796, Test: 0.0694
+Epoch: 824, LR: 0.00008, Loss: 0.0227, Val: 0.0783, Test: 0.0672
+Epoch: 825, LR: 0.00008, Loss: 0.0220, Val: 0.0794, Test: 0.0672
+Epoch: 826, LR: 0.00008, Loss: 0.0218, Val: 0.0794, Test: 0.0672
+Epoch: 827, LR: 0.00008, Loss: 0.0215, Val: 0.0802, Test: 0.0672
+Epoch: 828, LR: 0.00008, Loss: 0.0219, Val: 0.0815, Test: 0.0672
+Epoch: 829, LR: 0.00008, Loss: 0.0221, Val: 0.0810, Test: 0.0672
+Epoch: 830, LR: 0.00008, Loss: 0.0226, Val: 0.0813, Test: 0.0672
+Epoch: 831, LR: 0.00008, Loss: 0.0224, Val: 0.0824, Test: 0.0672
+Epoch: 832, LR: 0.00008, Loss: 0.0224, Val: 0.0812, Test: 0.0672
+Epoch: 833, LR: 0.00007, Loss: 0.0221, Val: 0.0800, Test: 0.0672
+Epoch: 834, LR: 0.00007, Loss: 0.0224, Val: 0.0810, Test: 0.0672
+Epoch: 835, LR: 0.00007, Loss: 0.0212, Val: 0.0815, Test: 0.0672
+Epoch: 836, LR: 0.00007, Loss: 0.0231, Val: 0.0846, Test: 0.0672
+Epoch: 837, LR: 0.00007, Loss: 0.0225, Val: 0.0833, Test: 0.0672
+Epoch: 838, LR: 0.00007, Loss: 0.0216, Val: 0.0803, Test: 0.0672
+Epoch: 839, LR: 0.00007, Loss: 0.0213, Val: 0.0825, Test: 0.0672
+Epoch: 840, LR: 0.00007, Loss: 0.0222, Val: 0.0813, Test: 0.0672
+Epoch: 841, LR: 0.00007, Loss: 0.0217, Val: 0.0809, Test: 0.0672
+Epoch: 842, LR: 0.00007, Loss: 0.0213, Val: 0.0804, Test: 0.0672
+Epoch: 843, LR: 0.00007, Loss: 0.0218, Val: 0.0804, Test: 0.0672
+Epoch: 844, LR: 0.00007, Loss: 0.0224, Val: 0.0801, Test: 0.0672
+Epoch: 845, LR: 0.00006, Loss: 0.0217, Val: 0.0823, Test: 0.0672
+Epoch: 846, LR: 0.00006, Loss: 0.0219, Val: 0.0816, Test: 0.0672
+Epoch: 847, LR: 0.00006, Loss: 0.0218, Val: 0.0814, Test: 0.0672
+Epoch: 848, LR: 0.00006, Loss: 0.0215, Val: 0.0824, Test: 0.0672
+Epoch: 849, LR: 0.00006, Loss: 0.0216, Val: 0.0815, Test: 0.0672
+Epoch: 850, LR: 0.00006, Loss: 0.0211, Val: 0.0820, Test: 0.0672
+Epoch: 851, LR: 0.00006, Loss: 0.0220, Val: 0.0821, Test: 0.0672
+Epoch: 852, LR: 0.00006, Loss: 0.0222, Val: 0.0810, Test: 0.0672
+Epoch: 853, LR: 0.00006, Loss: 0.0217, Val: 0.0810, Test: 0.0672
+Epoch: 854, LR: 0.00006, Loss: 0.0212, Val: 0.0816, Test: 0.0672
+Epoch: 855, LR: 0.00006, Loss: 0.0211, Val: 0.0814, Test: 0.0672
+Epoch: 856, LR: 0.00006, Loss: 0.0209, Val: 0.0806, Test: 0.0672
+Epoch: 857, LR: 0.00005, Loss: 0.0210, Val: 0.0806, Test: 0.0672
+Epoch: 858, LR: 0.00005, Loss: 0.0215, Val: 0.0807, Test: 0.0672
+Epoch: 859, LR: 0.00005, Loss: 0.0212, Val: 0.0796, Test: 0.0672
+Epoch: 860, LR: 0.00005, Loss: 0.0210, Val: 0.0813, Test: 0.0672
+Epoch: 861, LR: 0.00005, Loss: 0.0211, Val: 0.0812, Test: 0.0672
+Epoch: 862, LR: 0.00005, Loss: 0.0214, Val: 0.0831, Test: 0.0672
+Epoch: 863, LR: 0.00005, Loss: 0.0217, Val: 0.0814, Test: 0.0672
+Epoch: 864, LR: 0.00005, Loss: 0.0211, Val: 0.0841, Test: 0.0672
+Epoch: 865, LR: 0.00005, Loss: 0.0212, Val: 0.0822, Test: 0.0672
+Epoch: 866, LR: 0.00005, Loss: 0.0209, Val: 0.0802, Test: 0.0672
+Epoch: 867, LR: 0.00005, Loss: 0.0211, Val: 0.0829, Test: 0.0672
+Epoch: 868, LR: 0.00005, Loss: 0.0212, Val: 0.0828, Test: 0.0672
+Epoch: 869, LR: 0.00005, Loss: 0.0214, Val: 0.0805, Test: 0.0672
+Epoch: 870, LR: 0.00005, Loss: 0.0209, Val: 0.0805, Test: 0.0672
+Epoch: 871, LR: 0.00004, Loss: 0.0207, Val: 0.0812, Test: 0.0672
+Epoch: 872, LR: 0.00004, Loss: 0.0209, Val: 0.0807, Test: 0.0672
+Epoch: 873, LR: 0.00004, Loss: 0.0205, Val: 0.0819, Test: 0.0672
+Epoch: 874, LR: 0.00004, Loss: 0.0206, Val: 0.0817, Test: 0.0672
+Epoch: 875, LR: 0.00004, Loss: 0.0211, Val: 0.0818, Test: 0.0672
+Epoch: 876, LR: 0.00004, Loss: 0.0208, Val: 0.0826, Test: 0.0672
+Epoch: 877, LR: 0.00004, Loss: 0.0212, Val: 0.0818, Test: 0.0672
+Epoch: 878, LR: 0.00004, Loss: 0.0210, Val: 0.0831, Test: 0.0672
+Epoch: 879, LR: 0.00004, Loss: 0.0206, Val: 0.0833, Test: 0.0672
+Epoch: 880, LR: 0.00004, Loss: 0.0208, Val: 0.0821, Test: 0.0672
+Epoch: 881, LR: 0.00004, Loss: 0.0204, Val: 0.0824, Test: 0.0672
+Epoch: 882, LR: 0.00004, Loss: 0.0211, Val: 0.0819, Test: 0.0672
+Epoch: 883, LR: 0.00004, Loss: 0.0210, Val: 0.0823, Test: 0.0672
+Epoch: 884, LR: 0.00004, Loss: 0.0209, Val: 0.0822, Test: 0.0672
+Epoch: 885, LR: 0.00004, Loss: 0.0204, Val: 0.0824, Test: 0.0672
+Epoch: 886, LR: 0.00004, Loss: 0.0204, Val: 0.0816, Test: 0.0672
+Epoch: 887, LR: 0.00003, Loss: 0.0210, Val: 0.0813, Test: 0.0672
+Epoch: 888, LR: 0.00003, Loss: 0.0205, Val: 0.0808, Test: 0.0672
+Epoch: 889, LR: 0.00003, Loss: 0.0204, Val: 0.0808, Test: 0.0672
+Epoch: 890, LR: 0.00003, Loss: 0.0202, Val: 0.0820, Test: 0.0672
+Epoch: 891, LR: 0.00003, Loss: 0.0203, Val: 0.0814, Test: 0.0672
+Epoch: 892, LR: 0.00003, Loss: 0.0210, Val: 0.0813, Test: 0.0672
+Epoch: 893, LR: 0.00003, Loss: 0.0204, Val: 0.0810, Test: 0.0672
+Epoch: 894, LR: 0.00003, Loss: 0.0202, Val: 0.0816, Test: 0.0672
+Epoch: 895, LR: 0.00003, Loss: 0.0206, Val: 0.0827, Test: 0.0672
+Epoch: 896, LR: 0.00003, Loss: 0.0209, Val: 0.0808, Test: 0.0672
+Epoch: 897, LR: 0.00003, Loss: 0.0202, Val: 0.0813, Test: 0.0672
+Epoch: 898, LR: 0.00003, Loss: 0.0202, Val: 0.0816, Test: 0.0672
+Epoch: 899, LR: 0.00003, Loss: 0.0209, Val: 0.0806, Test: 0.0672
+Epoch: 900, LR: 0.00003, Loss: 0.0200, Val: 0.0814, Test: 0.0672
+Epoch: 901, LR: 0.00003, Loss: 0.0210, Val: 0.0828, Test: 0.0672
+Epoch: 902, LR: 0.00003, Loss: 0.0203, Val: 0.0816, Test: 0.0672
+Epoch: 903, LR: 0.00003, Loss: 0.0204, Val: 0.0817, Test: 0.0672
+Epoch: 904, LR: 0.00002, Loss: 0.0206, Val: 0.0822, Test: 0.0672
+Epoch: 905, LR: 0.00002, Loss: 0.0207, Val: 0.0817, Test: 0.0672
+Epoch: 906, LR: 0.00002, Loss: 0.0197, Val: 0.0824, Test: 0.0672
+Epoch: 907, LR: 0.00002, Loss: 0.0202, Val: 0.0813, Test: 0.0672
+Epoch: 908, LR: 0.00002, Loss: 0.0202, Val: 0.0807, Test: 0.0672
+Epoch: 909, LR: 0.00002, Loss: 0.0203, Val: 0.0806, Test: 0.0672
+Epoch: 910, LR: 0.00002, Loss: 0.0202, Val: 0.0817, Test: 0.0672
+Epoch: 911, LR: 0.00002, Loss: 0.0203, Val: 0.0810, Test: 0.0672
+Epoch: 912, LR: 0.00002, Loss: 0.0199, Val: 0.0808, Test: 0.0672
+Epoch: 913, LR: 0.00002, Loss: 0.0206, Val: 0.0819, Test: 0.0672
+Epoch: 914, LR: 0.00002, Loss: 0.0196, Val: 0.0826, Test: 0.0672
+Epoch: 915, LR: 0.00002, Loss: 0.0203, Val: 0.0827, Test: 0.0672
+Epoch: 916, LR: 0.00002, Loss: 0.0198, Val: 0.0811, Test: 0.0672
+Epoch: 917, LR: 0.00002, Loss: 0.0198, Val: 0.0816, Test: 0.0672
+Epoch: 918, LR: 0.00002, Loss: 0.0200, Val: 0.0827, Test: 0.0672
+Epoch: 919, LR: 0.00002, Loss: 0.0204, Val: 0.0816, Test: 0.0672
+Epoch: 920, LR: 0.00002, Loss: 0.0203, Val: 0.0813, Test: 0.0672
+Epoch: 921, LR: 0.00002, Loss: 0.0201, Val: 0.0800, Test: 0.0672
+Epoch: 922, LR: 0.00002, Loss: 0.0200, Val: 0.0812, Test: 0.0672
+Epoch: 923, LR: 0.00002, Loss: 0.0202, Val: 0.0810, Test: 0.0672
+Epoch: 924, LR: 0.00002, Loss: 0.0199, Val: 0.0806, Test: 0.0672
+Epoch: 925, LR: 0.00002, Loss: 0.0199, Val: 0.0812, Test: 0.0672
+Epoch: 926, LR: 0.00001, Loss: 0.0201, Val: 0.0829, Test: 0.0672
+Epoch: 927, LR: 0.00001, Loss: 0.0196, Val: 0.0818, Test: 0.0672
+Epoch: 928, LR: 0.00001, Loss: 0.0201, Val: 0.0819, Test: 0.0672
+Epoch: 929, LR: 0.00001, Loss: 0.0195, Val: 0.0815, Test: 0.0672
+Epoch: 930, LR: 0.00001, Loss: 0.0199, Val: 0.0808, Test: 0.0672
+Epoch: 931, LR: 0.00001, Loss: 0.0196, Val: 0.0817, Test: 0.0672
+Epoch: 932, LR: 0.00001, Loss: 0.0197, Val: 0.0823, Test: 0.0672
+Epoch: 933, LR: 0.00001, Loss: 0.0199, Val: 0.0808, Test: 0.0672
+Epoch: 934, LR: 0.00001, Loss: 0.0198, Val: 0.0813, Test: 0.0672
+Epoch: 935, LR: 0.00001, Loss: 0.0197, Val: 0.0805, Test: 0.0672
+Epoch: 936, LR: 0.00001, Loss: 0.0198, Val: 0.0808, Test: 0.0672
+Epoch: 937, LR: 0.00001, Loss: 0.0198, Val: 0.0816, Test: 0.0672
+Epoch: 938, LR: 0.00001, Loss: 0.0201, Val: 0.0809, Test: 0.0672
+Epoch: 939, LR: 0.00001, Loss: 0.0198, Val: 0.0806, Test: 0.0672
+Epoch: 940, LR: 0.00001, Loss: 0.0203, Val: 0.0810, Test: 0.0672
+Epoch: 941, LR: 0.00001, Loss: 0.0202, Val: 0.0815, Test: 0.0672
+Epoch: 942, LR: 0.00001, Loss: 0.0201, Val: 0.0802, Test: 0.0672
+Epoch: 943, LR: 0.00001, Loss: 0.0201, Val: 0.0813, Test: 0.0672
+Epoch: 944, LR: 0.00001, Loss: 0.0198, Val: 0.0811, Test: 0.0672
+Epoch: 945, LR: 0.00001, Loss: 0.0197, Val: 0.0811, Test: 0.0672
+Epoch: 946, LR: 0.00001, Loss: 0.0195, Val: 0.0810, Test: 0.0672
+Epoch: 947, LR: 0.00001, Loss: 0.0199, Val: 0.0806, Test: 0.0672
+Epoch: 948, LR: 0.00001, Loss: 0.0196, Val: 0.0823, Test: 0.0672
+Epoch: 949, LR: 0.00001, Loss: 0.0198, Val: 0.0815, Test: 0.0672
+Epoch: 950, LR: 0.00001, Loss: 0.0194, Val: 0.0815, Test: 0.0672
+Epoch: 951, LR: 0.00001, Loss: 0.0196, Val: 0.0805, Test: 0.0672
+Epoch: 952, LR: 0.00001, Loss: 0.0199, Val: 0.0821, Test: 0.0672
+Epoch: 953, LR: 0.00001, Loss: 0.0195, Val: 0.0817, Test: 0.0672
+Epoch: 954, LR: 0.00001, Loss: 0.0199, Val: 0.0820, Test: 0.0672
+Epoch: 955, LR: 0.00001, Loss: 0.0193, Val: 0.0810, Test: 0.0672
+Epoch: 956, LR: 0.00001, Loss: 0.0197, Val: 0.0813, Test: 0.0672
+Epoch: 957, LR: 0.00001, Loss: 0.0197, Val: 0.0815, Test: 0.0672
+Epoch: 958, LR: 0.00000, Loss: 0.0199, Val: 0.0810, Test: 0.0672
+Epoch: 959, LR: 0.00000, Loss: 0.0192, Val: 0.0821, Test: 0.0672
+Epoch: 960, LR: 0.00000, Loss: 0.0193, Val: 0.0821, Test: 0.0672
+Epoch: 961, LR: 0.00000, Loss: 0.0196, Val: 0.0817, Test: 0.0672
+Epoch: 962, LR: 0.00000, Loss: 0.0196, Val: 0.0815, Test: 0.0672
+Epoch: 963, LR: 0.00000, Loss: 0.0194, Val: 0.0820, Test: 0.0672
+Epoch: 964, LR: 0.00000, Loss: 0.0194, Val: 0.0815, Test: 0.0672
+Epoch: 965, LR: 0.00000, Loss: 0.0196, Val: 0.0816, Test: 0.0672
+Epoch: 966, LR: 0.00000, Loss: 0.0193, Val: 0.0823, Test: 0.0672
+Epoch: 967, LR: 0.00000, Loss: 0.0194, Val: 0.0829, Test: 0.0672
+Epoch: 968, LR: 0.00000, Loss: 0.0196, Val: 0.0815, Test: 0.0672
+Epoch: 969, LR: 0.00000, Loss: 0.0196, Val: 0.0823, Test: 0.0672
+Epoch: 970, LR: 0.00000, Loss: 0.0193, Val: 0.0819, Test: 0.0672
+Epoch: 971, LR: 0.00000, Loss: 0.0196, Val: 0.0814, Test: 0.0672
+Epoch: 972, LR: 0.00000, Loss: 0.0190, Val: 0.0820, Test: 0.0672
+Epoch: 973, LR: 0.00000, Loss: 0.0195, Val: 0.0824, Test: 0.0672
+Epoch: 974, LR: 0.00000, Loss: 0.0199, Val: 0.0811, Test: 0.0672
+Epoch: 975, LR: 0.00000, Loss: 0.0194, Val: 0.0816, Test: 0.0672
+Epoch: 976, LR: 0.00000, Loss: 0.0193, Val: 0.0818, Test: 0.0672
+Epoch: 977, LR: 0.00000, Loss: 0.0197, Val: 0.0820, Test: 0.0672
+Epoch: 978, LR: 0.00000, Loss: 0.0192, Val: 0.0814, Test: 0.0672
+Epoch: 979, LR: 0.00000, Loss: 0.0191, Val: 0.0818, Test: 0.0672
+Epoch: 980, LR: 0.00000, Loss: 0.0198, Val: 0.0814, Test: 0.0672
+Epoch: 981, LR: 0.00000, Loss: 0.0195, Val: 0.0817, Test: 0.0672
+Epoch: 982, LR: 0.00000, Loss: 0.0200, Val: 0.0817, Test: 0.0672
+Epoch: 983, LR: 0.00000, Loss: 0.0198, Val: 0.0814, Test: 0.0672
+Epoch: 984, LR: 0.00000, Loss: 0.0194, Val: 0.0813, Test: 0.0672
+Epoch: 985, LR: 0.00000, Loss: 0.0193, Val: 0.0814, Test: 0.0672
+Epoch: 986, LR: 0.00000, Loss: 0.0192, Val: 0.0821, Test: 0.0672
+Epoch: 987, LR: 0.00000, Loss: 0.0196, Val: 0.0811, Test: 0.0672
+Epoch: 988, LR: 0.00000, Loss: 0.0196, Val: 0.0804, Test: 0.0672
+Epoch: 989, LR: 0.00000, Loss: 0.0198, Val: 0.0806, Test: 0.0672
+Epoch: 990, LR: 0.00000, Loss: 0.0194, Val: 0.0819, Test: 0.0672
+Epoch: 991, LR: 0.00000, Loss: 0.0193, Val: 0.0810, Test: 0.0672
+Epoch: 992, LR: 0.00000, Loss: 0.0190, Val: 0.0820, Test: 0.0672
+Epoch: 993, LR: 0.00000, Loss: 0.0196, Val: 0.0808, Test: 0.0672
+Epoch: 994, LR: 0.00000, Loss: 0.0194, Val: 0.0815, Test: 0.0672
+Epoch: 995, LR: 0.00000, Loss: 0.0193, Val: 0.0815, Test: 0.0672
+Epoch: 996, LR: 0.00000, Loss: 0.0195, Val: 0.0822, Test: 0.0672
+Epoch: 997, LR: 0.00000, Loss: 0.0198, Val: 0.0820, Test: 0.0672
+Epoch: 998, LR: 0.00000, Loss: 0.0194, Val: 0.0815, Test: 0.0672
+Epoch: 999, LR: 0.00000, Loss: 0.0199, Val: 0.0813, Test: 0.0672
+Epoch: 1000, LR: 0.00000, Loss: 0.0191, Val: 0.0818, Test: 0.0672

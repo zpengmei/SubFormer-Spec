@@ -38,6 +38,7 @@ class SubFormer(torch.nn.Module):
                  num_eig_trees: int = 16,
                  no_spec: bool = False,
                  expand_spec: bool = False,
+                 gate_activation: str = 'relu',
                  ### readout part ###
                  readout_act: str = None,
                  dual_readout: bool = False,
@@ -75,6 +76,7 @@ class SubFormer(torch.nn.Module):
                                num_eig_trees=num_eig_trees,
                                nospec=no_spec,
                                expand_spec=expand_spec,
+                               gate_activation=gate_activation,
                                )
 
         if readout_act is None:

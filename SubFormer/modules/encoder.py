@@ -19,6 +19,7 @@ class Encoder(torch.nn.Module):
                  num_eig_trees: int = 1,
                  nospec: bool = False,
                  expand_spec: bool = False,
+                 gate_activation: str = 'relu',
                  ):
         super().__init__()
 
@@ -54,6 +55,18 @@ class Encoder(torch.nn.Module):
         else:
             self.cls_token = torch.nn.Parameter(torch.randn(1, d_model))
 
+        if gate_activation is None:
+            self.gate_activation = None
+        elif gate_activation == 'relu':
+            self.gate_activation = torch.nn.ReLU()
+        elif gate_activation == 'leaky_relu':
+            self.gate_activation = torch.nn.LeakyReLU()
+        elif gate_activation == 'gelu':
+            self.gate_activation = torch.nn.GELU()
+        elif gate_activation == 'tanh':
+            self.gate_activation = torch.nn.Tanh()
+
+
     def forward(self, x_clique: torch.Tensor, data: Data) -> torch.Tensor:
         tree_batch = torch.repeat_interleave(data.num_cliques)
         src, mask = to_dense_batch(x_clique, batch=tree_batch)
@@ -73,14 +86,20 @@ class Encoder(torch.nn.Module):
                 eig_graphs = (1 - xsq) * torch.exp(-xsq / 2)
                 eig_vals = eig_graphs
                 eig_token = F.softmax(eig_vals, dim=-1)
-                vals = self.value_token(eig_vals).relu()
+                if self.gate_activation is not None:
+                    vals = self.gate_activation(self.value_token(eig_vals))
+                else:
+                    vals = self.value_token(eig_vals)
 
             else:
                 xsq = torch.pow(val * self.time_constant, 2)
                 eig_graphs = (1 - xsq) * torch.exp(-xsq / 2)
                 eig_vals = eig_graphs
                 eig_token = F.softmax(torch.matmul(eig_vals, self.cls_token), dim=-1)
-                vals = torch.matmul(eig_vals, self.value_token).relu()
+                if self.gate_activation is not None:
+                    vals = self.gate_activation(torch.matmul(eig_vals, self.value_token))
+                else:
+                    vals = torch.matmul(eig_vals, self.value_token)
 
             if self.spec_attention:
                 cls_token = vals * eig_token

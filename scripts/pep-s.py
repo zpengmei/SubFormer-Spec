@@ -18,10 +18,10 @@ train_dataset = LRGBDataset(root, name='Peptides-struct', split='train', pre_tra
 val_dataset = LRGBDataset(root, name='Peptides-struct', split='val', pre_transform=transform)
 test_dataset = LRGBDataset(root, name='Peptides-struct', split='test', pre_transform=transform)
 train_loader = DataLoader(train_dataset, 64, shuffle=True)
-val_loader = DataLoader(val_dataset, 128, shuffle=False)
-test_loader = DataLoader(test_dataset, 128, shuffle=False)
+val_loader = DataLoader(val_dataset, 64, shuffle=False)
+test_loader = DataLoader(test_dataset, 64, shuffle=False)
 
-epochs = 100
+epochs = 200
 model = SubFormer(
     hidden_channels=64,
     out_channels=11,
@@ -46,6 +46,7 @@ model = SubFormer(
     signet=False,
     spec_attention=False,
     bypass=True,
+    gate_activation= 'relu',
 ).to(device)
 print(model)
 
@@ -86,7 +87,7 @@ def test(loader):
     return total_error / len(loader.dataset)
 
 
-optimizer = AdamW(model.parameters(), lr=0.0005, amsgrad=True)
+optimizer = AdamW(model.parameters(), lr=0.0005,amsgrad=True)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5,
                                                        patience=10, min_lr=0.00001)
 
@@ -99,7 +100,7 @@ for epoch in range(1, epochs + 1):
 
     if val_mae < best_val_mae:
         best_val_mae = val_mae
-        test_mae = test(test_loader)
+    test_mae = test(test_loader)
 
     print(f'Epoch: {epoch:03d}, LR: {lr:.5f}, Loss: {loss:.4f}, '
           f'Val: {val_mae:.4f}, Test: {test_mae:.4f}')

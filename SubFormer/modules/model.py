@@ -41,6 +41,8 @@ class SubFormer(torch.nn.Module):
                  gate_activation: str = 'relu',
                  ### readout part ###
                  readout_act: str = None,
+                 readout_num_layers: int = 2,
+                 readout_channels: int = 64,
                  dual_readout: bool = False,
                  out_channels: int = 1,
                  ):
@@ -91,21 +93,34 @@ class SubFormer(torch.nn.Module):
         self.dual_readout = dual_readout
 
         if dual_readout:
-            self.readout = torch.nn.Sequential(
-                torch.nn.Linear(d_model + hidden_channels, d_model),
-                self.activation,
-                torch.nn.Linear(d_model, d_model),
-                self.activation,
-                torch.nn.Linear(d_model, out_channels)
-            )
+
+            # add num_layers for readout
+            self.readout = torch.nn.Sequential()
+            for i in range(readout_num_layers):
+                if i == 0:
+                    self.readout.add_module(f'linear_{i}', torch.nn.Linear(d_model + hidden_channels, readout_channels))
+                    self.readout.add_module(f'activation_{i}', self.activation)
+                elif i == readout_num_layers - 1:
+                    self.readout.add_module(f'linear_{i}', torch.nn.Linear(readout_channels, out_channels))
+                else:
+                    self.readout.add_module(f'linear_{i}', torch.nn.Linear(readout_channels, readout_channels))
+                    self.readout.add_module(f'activation_{i}', self.activation)
+
+
         else:
-            self.readout = torch.nn.Sequential(
-                torch.nn.Linear(d_model, d_model),
-                self.activation,
-                torch.nn.Linear(d_model, d_model),
-                self.activation,
-                torch.nn.Linear(d_model, out_channels)
-            )
+
+            self.readout = torch.nn.Sequential()
+            for i in range(readout_num_layers):
+                if i == 0:
+                    self.readout.add_module(f'linear_{i}', torch.nn.Linear(d_model, readout_channels))
+                    self.readout.add_module(f'activation_{i}', self.activation)
+                elif i == readout_num_layers - 1:
+                    self.readout.add_module(f'linear_{i}', torch.nn.Linear(readout_channels, out_channels))
+                else:
+                    self.readout.add_module(f'linear_{i}', torch.nn.Linear(readout_channels, readout_channels))
+                    self.readout.add_module(f'activation_{i}', self.activation)
+
+
 
     def forward(self, data: Data):
         x_clique, graph_readout = self.local_mp(data)

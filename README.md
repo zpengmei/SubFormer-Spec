@@ -133,7 +133,18 @@ year={2023},
 url={https://openreview.net/forum?id=g0fOI1bE1C}
 }
 ```
-The Spectral token draft is in preparation. Please cite the above paper if you use the SubFormer-Spec model.
+The Spectral token draft is in preparation. Please cite the temporary technical report.
+
+```bibtex
+@misc{pengmei2024technical,
+      title={Technical Report: The Graph Spectral Token -- Enhancing Graph Transformers with Spectral Information}, 
+      author={Zihan Pengmei and Zimu Li},
+      year={2024},
+      eprint={2404.05604},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```
 
 The OPDA dataset is accessed from https://cmr.fysik.dtu.dk/solar/solar.html. 
 

@@ -18,6 +18,7 @@ class SubFormer(torch.nn.Module):
                  local_mp: str = 'gine',
                  aggregation: str = 'sum',
                  no_tree: bool = False,
+                 return_graph: bool = False,
                  ### Transformer part ###
                  num_enc_layers: int = 4,
                  enc_dropout: float = 0,
@@ -58,6 +59,7 @@ class SubFormer(torch.nn.Module):
                                 pe_fea=pe_fea,
                                 pe_dim=pe_dim,
                                 no_tree=no_tree,
+                                return_graph=return_graph,
                                 )
 
         self.pe = PositionalEncoding(pe_dim=pe_dim,
@@ -67,7 +69,6 @@ class SubFormer(torch.nn.Module):
                                      activation=pe_activation,
                                      bypass=bypass,
                                      pe_source=pe_source,
-                                     no_tree=no_tree,
                                      )
 
         self.encoder = Encoder(d_model=d_model,
@@ -82,7 +83,6 @@ class SubFormer(torch.nn.Module):
                                nospec=no_spec,
                                expand_spec=expand_spec,
                                gate_activation=gate_activation,
-                               no_tree=no_tree,
                                )
 
         if readout_act is None:

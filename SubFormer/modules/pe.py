@@ -13,7 +13,6 @@ class PositionalEncoding(torch.nn.Module):
                  signet: bool = False,
                  bypass: bool = False,
                  pe_source: str = 'both',
-                 no_tree: bool = False,
                  ):
         super(PositionalEncoding, self).__init__()
 
@@ -76,8 +75,6 @@ class PositionalEncoding(torch.nn.Module):
 
         self.pe_source = pe_source
 
-        # if no_tree:
-        #     del self.tree_lpe_lin
 
     def forward_notree(self,data:Data,x:torch.Tensor):
         deg = self.deg_emb(data.graph_degree)

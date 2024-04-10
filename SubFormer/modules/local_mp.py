@@ -64,6 +64,7 @@ class LocalMP(torch.nn.Module):
                  pe_fea: bool = False,
                  pe_dim: int = 10,
                  no_tree: bool = False,
+                 return_graph: bool = False,
                  ):
         super(LocalMP, self).__init__()
         self.atom_encoder = AtomEncoder(hidden_channels)
@@ -200,6 +201,7 @@ class LocalMP(torch.nn.Module):
             # del self.clique
 
         self.no_tree = no_tree
+        self.return_graph = return_graph
 
     def forward(self, data: Data):
 
@@ -255,5 +257,8 @@ class LocalMP(torch.nn.Module):
         if self.no_tree:
             return x, graph_readout
 
-        else:
-            return x_clique, graph_readout
+        elif not self.no_tree:
+            if self.return_graph:
+                return x, graph_readout
+            else:
+                return x_clique, graph_readout

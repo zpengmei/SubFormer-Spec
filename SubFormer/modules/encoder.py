@@ -20,7 +20,6 @@ class Encoder(torch.nn.Module):
                  nospec: bool = False,
                  expand_spec: bool = False,
                  gate_activation: str = 'relu',
-                 no_tree: bool = False,
                  ):
         super().__init__()
 
@@ -67,8 +66,6 @@ class Encoder(torch.nn.Module):
         elif gate_activation == 'tanh':
             self.gate_activation = torch.nn.Tanh()
 
-        if no_tree:
-            del self.tree_eig
 
 
     def forward_notree(self,x:torch.Tensor,data:Data) -> torch.Tensor:

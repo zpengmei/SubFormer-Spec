@@ -63,6 +63,7 @@ class LocalMP(torch.nn.Module):
                  aggregation: str = 'sum',
                  pe_fea: bool = False,
                  pe_dim: int = 10,
+                 no_tree: bool = False,
                  ):
         super(LocalMP, self).__init__()
         self.atom_encoder = AtomEncoder(hidden_channels)
@@ -186,10 +187,19 @@ class LocalMP(torch.nn.Module):
             self.clique2atom_lins.append(
                 Linear(hidden_channels, hidden_channels))
 
-        self.clique = Linear(hidden_channels, out_channels)
+        self.clique = Linear(hidden_channels, out_channels) # should be deleted?
 
         self.dropout = dropout
         self.pe_fea = pe_fea
+
+
+        if no_tree:
+            del self.sub_norms
+            del self.atom2clique_lins
+            del self.clique2atom_lins
+            # del self.clique
+
+        self.no_tree = no_tree
 
     def forward(self, data: Data):
 
@@ -227,16 +237,23 @@ class LocalMP(torch.nn.Module):
                 x = self.graph_norms[i](x).relu()
                 x = F.dropout(x, p=self.dropout)
 
+            if not self.no_tree:
+                row, col = data.atom2clique_index
+                x_clique = x_clique + F.relu(self.atom2clique_lins[i](scatter(
+                    x[row], col, dim=0, dim_size=x_clique.size(0),
+                    reduce=self.aggregation)))
+                x_clique = self.sub_norms[i](x_clique)
+                x = x + F.leaky_relu(self.clique2atom_lins[i](scatter(
+                    x_clique[col], row, dim=0, dim_size=x.size(0),
+                    reduce=self.aggregation)))
 
-            row, col = data.atom2clique_index
-            x_clique = x_clique + F.relu(self.atom2clique_lins[i](scatter(
-                x[row], col, dim=0, dim_size=x_clique.size(0),
-                reduce=self.aggregation)))
-            x_clique = self.sub_norms[i](x_clique)
-            x = x + F.leaky_relu(self.clique2atom_lins[i](scatter(
-                x_clique[col], row, dim=0, dim_size=x.size(0),
-                reduce=self.aggregation)))
+            elif self.no_tree:
+                continue
 
         graph_readout = scatter(x, data.batch, reduce='sum', dim=0)
 
-        return x_clique, graph_readout
+        if self.no_tree:
+            return x, graph_readout
+
+        else:
+            return x_clique, graph_readout

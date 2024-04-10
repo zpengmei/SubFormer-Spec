@@ -20,6 +20,7 @@ class Encoder(torch.nn.Module):
                  nospec: bool = False,
                  expand_spec: bool = False,
                  gate_activation: str = 'relu',
+                 no_tree: bool = False,
                  ):
         super().__init__()
 
@@ -65,6 +66,58 @@ class Encoder(torch.nn.Module):
             self.gate_activation = torch.nn.GELU()
         elif gate_activation == 'tanh':
             self.gate_activation = torch.nn.Tanh()
+
+        if no_tree:
+            del self.tree_eig
+
+
+    def forward_notree(self,x:torch.Tensor,data:Data) -> torch.Tensor:
+        src, mask = to_dense_batch(x, batch=data.batch)
+
+        if not self.nospec:
+            graphval = data.graph_lpeval.squeeze()
+            graphval, _ = to_dense_batch(graphval, batch=data.batch)
+            graphval = F.pad(graphval, (0, self.graph_eig - graphval.shape[1]), value=0)
+            val = graphval
+
+            if self.expand_spec:
+                val = self.cls_token(val).tanh()
+                xsq = torch.pow(self.time_constant(val), 2)
+                eig_graphs = (1 - xsq) * torch.exp(-xsq / 2)
+                eig_vals = eig_graphs
+                eig_token = F.softmax(eig_vals, dim=-1)
+                if self.gate_activation is not None:
+                    vals = self.gate_activation(self.value_token(eig_vals))
+                else:
+                    vals = self.value_token(eig_vals)
+
+            else:
+                xsq = torch.pow(val * self.time_constant, 2)
+                eig_graphs = (1 - xsq) * torch.exp(-xsq / 2)
+                eig_vals = eig_graphs
+                eig_token = F.softmax(torch.matmul(eig_vals, self.cls_token), dim=-1)
+                if self.gate_activation is not None:
+                    vals = self.gate_activation(torch.matmul(eig_vals, self.value_token))
+                else:
+                    vals = torch.matmul(eig_vals, self.value_token)
+
+            if self.spec_attention:
+                cls_token = vals * eig_token
+            else:
+                cls_token = vals
+
+            cls_token = cls_token.unsqueeze(1)
+
+        else:
+            cls_token = self.cls_token.expand(src.shape[0], -1, -1)
+
+        src = torch.cat([cls_token, src], dim=1)
+        mask = torch.cat([torch.ones(src.shape[0], 1).bool().to(src.device), mask], dim=1)
+        output = self.encoder(src, src_key_padding_mask=~mask)
+        output = output[:, 0, :]
+
+        return output
+
 
 
     def forward(self, x_clique: torch.Tensor, data: Data) -> torch.Tensor:

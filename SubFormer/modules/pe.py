@@ -13,6 +13,7 @@ class PositionalEncoding(torch.nn.Module):
                  signet: bool = False,
                  bypass: bool = False,
                  pe_source: str = 'both',
+                 no_tree: bool = False,
                  ):
         super(PositionalEncoding, self).__init__()
 
@@ -74,6 +75,34 @@ class PositionalEncoding(torch.nn.Module):
                 del self.lpe_lin
 
         self.pe_source = pe_source
+
+        # if no_tree:
+        #     del self.tree_lpe_lin
+
+    def forward_notree(self,data:Data,x:torch.Tensor):
+        deg = self.deg_emb(data.graph_degree)
+        deg = self.deg_lin(deg)
+        deg = self.activation(deg)
+        x = x + deg
+        x = self.deg_merge(x)
+
+        pe = data.graph_lpe.to(torch.float32)
+        pe_mask = torch.isnan(pe)
+        pe[pe_mask] = 0
+
+        if self.signet:
+            pe = self.lpe_lin(pe) + self.lpe_lin(-pe)
+        else:
+            if self.bypass:
+                pe = self.lpe_lin(pe) + self.lpe_lin(-pe)
+            else:
+                pe = self.lpe_lin(pe)
+
+        if self.concat_pe:
+            x = torch.cat([x,pe],dim=-1)
+        else:
+            x = x + pe
+        return x
 
     def forward(self, data: Data, x_clique: torch.Tensor) -> torch.Tensor:
 

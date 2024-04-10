@@ -17,6 +17,7 @@ class SubFormer(torch.nn.Module):
                  mp_dropout: float = 0,
                  local_mp: str = 'gine',
                  aggregation: str = 'sum',
+                 no_tree: bool = False,
                  ### Transformer part ###
                  num_enc_layers: int = 4,
                  enc_dropout: float = 0,
@@ -56,6 +57,7 @@ class SubFormer(torch.nn.Module):
                                 aggregation=aggregation,
                                 pe_fea=pe_fea,
                                 pe_dim=pe_dim,
+                                no_tree=no_tree,
                                 )
 
         self.pe = PositionalEncoding(pe_dim=pe_dim,
@@ -65,6 +67,7 @@ class SubFormer(torch.nn.Module):
                                      activation=pe_activation,
                                      bypass=bypass,
                                      pe_source=pe_source,
+                                     no_tree=no_tree,
                                      )
 
         self.encoder = Encoder(d_model=d_model,
@@ -79,6 +82,7 @@ class SubFormer(torch.nn.Module):
                                nospec=no_spec,
                                expand_spec=expand_spec,
                                gate_activation=gate_activation,
+                               no_tree=no_tree,
                                )
 
         if readout_act is None:
@@ -121,6 +125,18 @@ class SubFormer(torch.nn.Module):
                     self.readout.add_module(f'activation_{i}', self.activation)
 
 
+    def forward_notree(self, data: Data):
+        x, graph_readout = self.local_mp(data)
+        x = self.pe.forward_notree(x=x, data=data)
+        out = self.encoder.forward_notree(x=x, data=data)
+
+        if self.dual_readout:
+            out = torch.concat((out, graph_readout), dim=1)
+        else:
+            out = out
+
+        out = self.readout(out)
+        return out
 
     def forward(self, data: Data):
         x_clique, graph_readout = self.local_mp(data)
